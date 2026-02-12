@@ -204,7 +204,11 @@
                       </div>
                       <div>
                         <label class="block text-xs font-semibold text-slate-600" for="fireflyContentClassInput">Firefly Content Class (任意)</label>
-                        <input id="fireflyContentClassInput" type="text" class="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-sea focus:outline-none" placeholder="photo" />
+                        <select id="fireflyContentClassInput" class="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-sea focus:outline-none">
+                          <option value="photo">Photo (写真的な画像)</option>
+                          <option value="art">Art (芸術的な画像)</option>
+                        </select>
+                        <p class="mt-1 text-xs text-slate-500">生成画像の特性を指定します。Photoは写真的、Artは芸術的な仕上がりになります。</p>
                       </div>
                     </div>
                   </div>
