@@ -28,8 +28,8 @@ export function readSettingsFromForm({ refs, state, defaultSettings }) {
     refs.fireflyApiBaseInput?.value.trim() || defaultSettings.providers.firefly.apiBase;
   next.providers.firefly.contentClass =
     refs.fireflyContentClassInput?.value.trim() || defaultSettings.providers.firefly.contentClass;
-  next.providers.firefly.proxyUrl = refs.fireflyProxyUrlInput.value.trim();
-  next.providers.firefly.proxyToken = refs.fireflyProxyTokenInput.value.trim();
+  next.providers.firefly.proxyUrl = refs.fireflyProxyUrlInput?.value.trim() || '';
+  next.providers.firefly.proxyToken = refs.fireflyProxyTokenInput?.value.trim() || '';
 
   const modelInput = refs.providerModelManualInput.value.trim();
   next.providers[next.activeProvider].model = modelInput || defaultSettings.providers[next.activeProvider].model;
@@ -56,8 +56,12 @@ export function writeSettingsToForm({ refs, settings, defaultSettings }) {
     refs.fireflyContentClassInput.value =
       settings.providers.firefly.contentClass || defaultSettings.providers.firefly.contentClass;
   }
-  refs.fireflyProxyUrlInput.value = settings.providers.firefly.proxyUrl || '';
-  refs.fireflyProxyTokenInput.value = settings.providers.firefly.proxyToken || '';
+  if (refs.fireflyProxyUrlInput) {
+    refs.fireflyProxyUrlInput.value = settings.providers.firefly.proxyUrl || '';
+  }
+  if (refs.fireflyProxyTokenInput) {
+    refs.fireflyProxyTokenInput.value = settings.providers.firefly.proxyToken || '';
+  }
   refs.providerModelManualInput.value = getActiveProviderModel(settings, defaultSettings);
 }
 
