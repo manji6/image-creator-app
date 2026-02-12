@@ -83,7 +83,10 @@ export function renderCardsView({
 
     if (regenerate) {
       const isRunning = isCardRegenerateDisabled(runningCardIds, card.id);
-      regenerate.disabled = isRunning || templateBlocked || providerNotConfigured;
+      const isDisabled = isRunning || templateBlocked || providerNotConfigured;
+      regenerate.disabled = isDisabled;
+      regenerate.classList.toggle('opacity-50', isDisabled);
+      regenerate.classList.toggle('cursor-not-allowed', isDisabled);
       regenerate.textContent = isRunning ? '生成中...' : '再生成';
       regenerate.addEventListener('click', () => {
         void onRegenerate(card.id);
