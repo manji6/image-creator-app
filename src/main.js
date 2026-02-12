@@ -43,7 +43,7 @@ import {
   MODEL_REQUIREMENT_DEBOUNCE_MS
 } from './app-constants.js';
 import { runGenerationPreflight } from './generation-preflight.js';
-import { generateImage, providerHint } from './providers/index.js';
+import { generateImage, providerHint, PROVIDER_INFO } from './providers/index.js';
 import { stripSessionOnlySettings } from './session-settings.js';
 import {
   getActiveProviderModel as getActiveProviderModelFromSettings,
@@ -55,6 +55,7 @@ import {
 import { renderCardsView } from './cards-view.js';
 import { buildStatusSummary, globalMessageClasses } from './ui-state.js';
 import { renderTemplate, validateTemplate } from './template.js';
+import { isProviderConfigured } from './providers/index.js';
 import {
   buildFinalPrompt,
   createPromptCard,
@@ -124,8 +125,6 @@ const refs = {
   fireflyAccessTokenInput: document.querySelector('#fireflyAccessTokenInput'),
   fireflyApiBaseInput: document.querySelector('#fireflyApiBaseInput'),
   fireflyContentClassInput: document.querySelector('#fireflyContentClassInput'),
-  fireflyProxyUrlInput: document.querySelector('#fireflyProxyUrlInput'),
-  fireflyProxyTokenInput: document.querySelector('#fireflyProxyTokenInput'),
   saveSettingsButton: document.querySelector('#saveSettingsButton'),
   promptBatchInput: document.querySelector('#promptBatchInput'),
   createCardsButton: document.querySelector('#createCardsButton'),
@@ -133,7 +132,6 @@ const refs = {
   regenerateFailedButton: document.querySelector('#regenerateFailedButton'),
   downloadAllButton: document.querySelector('#downloadAllButton'),
   clearCardsButton: document.querySelector('#clearCardsButton'),
-  queuedCount: document.querySelector('#queuedCount'),
   statusSummary: document.querySelector('#statusSummary'),
   globalMessage: document.querySelector('#globalMessage'),
   cardsGrid: document.querySelector('#cardsGrid'),
@@ -744,7 +742,6 @@ function buildPromptForRequest(settings, linePrompt) {
 
 function renderStatusSummary() {
   const status = buildStatusSummary(state.cards);
-  refs.queuedCount.textContent = status.queuedText;
   refs.statusSummary.textContent = status.summaryText;
 }
 
@@ -816,12 +813,13 @@ function render(shouldRenderCards = true) {
   }
 
   const templateBlocked = isAdvancedMode(state.settings) && !state.templateValidation.ok;
+  const providerNotConfigured = !isProviderConfigured(state.settings.activeProvider, state.settings);
 
   refs.createCardsButton.disabled = templateBlocked;
   refs.generateExistingButton.disabled =
-    isGenerateExistingDisabled(state.isBatchGenerating, state.cards) || templateBlocked;
+    isGenerateExistingDisabled(state.isBatchGenerating, state.cards) || templateBlocked || providerNotConfigured;
   refs.regenerateFailedButton.disabled =
-    isRegenerateFailedDisabled(state.isBatchGenerating, state.cards) || templateBlocked;
+    isRegenerateFailedDisabled(state.isBatchGenerating, state.cards) || templateBlocked || providerNotConfigured;
   refs.downloadAllButton.disabled =
     state.isDownloadingBundle || !state.cards.some((card) => Boolean(card.imageUrl));
 }
@@ -1272,16 +1270,6 @@ function bindEvents() {
     void setReferenceImageFromFile(file);
   });
 
-  refs.fireflyProxyUrlInput.addEventListener('input', () => {
-    syncSettingsFromForm();
-    render(false);
-  });
-
-  refs.fireflyProxyTokenInput.addEventListener('input', () => {
-    syncSettingsFromForm();
-    render(false);
-  });
-
   refs.createCardsButton.addEventListener('click', () => {
     void addCardsFromBatch();
   });
@@ -1349,7 +1337,12 @@ async function init() {
     await fetchModelCatalog(active, false);
     await fetchModelRequirement(active, getActiveProviderModel(state.settings), false);
 
-    setGlobalMessage('info', '準備完了。APIキーはブラウザ内にのみ保存され、Firefly Access Tokenはセッション内のみ保持されます。');
+    const configured = isProviderConfigured(active, state.settings);
+    if (!configured) {
+      setGlobalMessage('error', `${PROVIDER_INFO[active]?.label || active}のAPI設定が未入力です。API設定を確認してください。`);
+    } else {
+      setGlobalMessage('info', '準備完了。APIキーはブラウザ内にのみ保存され、Firefly Access Tokenはセッション内のみ保持されます。');
+    }
   } catch (error) {
     console.error(error);
     setGlobalMessage('error', `初期化に失敗しました: ${summarizeError(error)}`);

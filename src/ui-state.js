@@ -18,18 +18,15 @@ export function getStatusCounts(cards) {
 export function buildStatusSummary(cards) {
   const counts = getStatusCounts(cards);
   const total = cards.length;
-  const queuedText = `${counts.pending} queued`;
 
   if (total === 0) {
     return {
-      queuedText,
       summaryText: 'Ready',
       counts
     };
   }
 
   return {
-    queuedText,
     summaryText: `${total} cards | done ${counts.success} | generating ${counts.generating} | error ${counts.error}`,
     counts
   };

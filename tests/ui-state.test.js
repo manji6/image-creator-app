@@ -22,7 +22,6 @@ test('getStatusCounts aggregates known statuses', () => {
 
 test('buildStatusSummary returns ready text for empty list', () => {
   const summary = buildStatusSummary([]);
-  assert.equal(summary.queuedText, '0 queued');
   assert.equal(summary.summaryText, 'Ready');
 });
 
@@ -33,7 +32,6 @@ test('buildStatusSummary returns counts text for non-empty list', () => {
     { status: 'error' }
   ]);
 
-  assert.equal(summary.queuedText, '1 queued');
   assert.equal(summary.summaryText, '3 cards | done 1 | generating 0 | error 1');
 });
 
