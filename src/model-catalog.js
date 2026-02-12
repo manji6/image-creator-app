@@ -55,9 +55,14 @@ function normalizeFalItem(raw) {
     raw?.displayName ||
     raw?.name ||
     cleanId;
+  const category =
+    raw?.category ||
+    raw?.metadata?.category ||
+    '';
   return {
     id: cleanId,
     label: String(label),
+    category: String(category),
     provider: 'fal'
   };
 }
@@ -104,12 +109,23 @@ export function withDisambiguatedLabels(entries) {
   });
 }
 
+function isImageGenerationModel(model) {
+  const category = String(model?.category || '').toLowerCase();
+  if (!category) {
+    // カテゴリー情報がない場合は表示（後方互換性のため）
+    return true;
+  }
+  // 画像生成関連のカテゴリーのみを許可
+  return category.includes('image') || category === 'text-to-image' || category === 'image-to-image';
+}
+
 export function normalizeFalModels(payload) {
   const rawList = extractModelList(payload);
 
   const normalized = rawList
     .map((entry) => normalizeFalItem(entry))
-    .filter(Boolean);
+    .filter(Boolean)
+    .filter(isImageGenerationModel);
 
   return sortByLabel(uniqueById(normalized));
 }
