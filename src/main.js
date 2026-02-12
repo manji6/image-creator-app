@@ -773,6 +773,17 @@ function setGlobalMessage(type, text) {
   refs.globalMessage.classList.add(...globalMessageClasses(type));
 }
 
+function updateProviderConfigurationMessage() {
+  const active = state.settings.activeProvider;
+  const configured = isProviderConfigured(active, state.settings);
+
+  if (!configured) {
+    setGlobalMessage('error', `${PROVIDER_INFO[active]?.label || active}のAPI設定が未入力です。API設定を確認してください。`);
+  } else {
+    setGlobalMessage('info', '準備完了。APIキーはブラウザ内にのみ保存され、Firefly Access Tokenはセッション内のみ保持されます。');
+  }
+}
+
 function renderCards() {
   const templateBlocked = isAdvancedMode(state.settings) && !state.templateValidation.ok;
   const providerNotConfigured = !isProviderConfigured(state.settings.activeProvider, state.settings);
@@ -1159,6 +1170,7 @@ function switchActiveProvider(nextProvider) {
   render();
   void fetchModelCatalog(nextProvider, false);
   void fetchModelRequirement(nextProvider, getActiveProviderModel(state.settings), false);
+  updateProviderConfigurationMessage();
 }
 
 function bindEvents() {
@@ -1207,22 +1219,26 @@ function bindEvents() {
     syncSettingsFromForm();
     render(false);
     scheduleModelRequirementRefresh(false);
+    updateProviderConfigurationMessage();
   });
 
   refs.googleApiKeyInput.addEventListener('input', () => {
     resetModelCatalog('google');
     syncSettingsFromForm();
     render(false);
+    updateProviderConfigurationMessage();
   });
 
   refs.fireflyClientIdInput.addEventListener('input', () => {
     syncSettingsFromForm();
     render(false);
+    updateProviderConfigurationMessage();
   });
 
   refs.fireflyAccessTokenInput.addEventListener('input', () => {
     syncSettingsFromForm();
     render(false);
+    updateProviderConfigurationMessage();
   });
 
   refs.fireflyApiBaseInput.addEventListener('input', () => {
@@ -1344,12 +1360,7 @@ async function init() {
     await fetchModelCatalog(active, false);
     await fetchModelRequirement(active, getActiveProviderModel(state.settings), false);
 
-    const configured = isProviderConfigured(active, state.settings);
-    if (!configured) {
-      setGlobalMessage('error', `${PROVIDER_INFO[active]?.label || active}のAPI設定が未入力です。API設定を確認してください。`);
-    } else {
-      setGlobalMessage('info', '準備完了。APIキーはブラウザ内にのみ保存され、Firefly Access Tokenはセッション内のみ保持されます。');
-    }
+    updateProviderConfigurationMessage();
   } catch (error) {
     console.error(error);
     setGlobalMessage('error', `初期化に失敗しました: ${summarizeError(error)}`);
