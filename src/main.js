@@ -143,6 +143,8 @@ const refs = {
   copyPreviewButton: document.querySelector('#copyPreviewButton'),
   imagePreviewModal: document.querySelector('#imagePreviewModal'),
   imagePreviewModalImage: document.querySelector('#imagePreviewModalImage'),
+  imagePreviewPromptSection: document.querySelector('#imagePreviewPromptSection'),
+  imagePreviewPromptContent: document.querySelector('#imagePreviewPromptContent'),
   closeImagePreviewModalButton: document.querySelector('#closeImagePreviewModalButton')
 };
 
@@ -201,10 +203,12 @@ function closeImagePreviewModal() {
   refs.imagePreviewModal.classList.add('hidden');
   refs.imagePreviewModal.classList.remove('flex');
   refs.imagePreviewModalImage.removeAttribute('src');
+  refs.imagePreviewPromptContent.textContent = '';
 }
 
-function openImagePreviewModal(imageUrl) {
+function openImagePreviewModal(imageUrl, promptText) {
   refs.imagePreviewModalImage.src = imageUrl;
+  refs.imagePreviewPromptContent.textContent = promptText || '（プロンプト情報なし）';
   refs.imagePreviewModal.classList.remove('hidden');
   refs.imagePreviewModal.classList.add('flex');
 }
@@ -1028,7 +1032,8 @@ async function handleImagePreviewCard(cardId) {
     setGlobalMessage('info', 'このカードにはプレビュー可能な画像がありません。');
     return;
   }
-  openImagePreviewModal(card.imageUrl);
+  const promptText = card.finalPrompt || card.prompt || '';
+  openImagePreviewModal(card.imageUrl, promptText);
 }
 
 function previewHintForMode() {
