@@ -775,10 +775,12 @@ function setGlobalMessage(type, text) {
 
 function renderCards() {
   const templateBlocked = isAdvancedMode(state.settings) && !state.templateValidation.ok;
+  const providerNotConfigured = !isProviderConfigured(state.settings.activeProvider, state.settings);
 
   renderCardsView({
     cards: state.cards,
     templateBlocked,
+    providerNotConfigured,
     runningCardIds: state.runningCardIds,
     isDownloadingBundle: state.isDownloadingBundle,
     refs,

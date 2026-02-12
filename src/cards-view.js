@@ -11,6 +11,7 @@ import { statusClassName } from './utils.js';
 export function renderCardsView({
   cards,
   templateBlocked,
+  providerNotConfigured,
   runningCardIds,
   isDownloadingBundle,
   refs,
@@ -82,7 +83,7 @@ export function renderCardsView({
 
     if (regenerate) {
       const isRunning = isCardRegenerateDisabled(runningCardIds, card.id);
-      regenerate.disabled = isRunning || templateBlocked;
+      regenerate.disabled = isRunning || templateBlocked || providerNotConfigured;
       regenerate.textContent = isRunning ? '生成中...' : '再生成';
       regenerate.addEventListener('click', () => {
         void onRegenerate(card.id);
