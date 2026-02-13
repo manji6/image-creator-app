@@ -190,6 +190,9 @@ function isAdvancedMode(settings = state.settings) {
 function closePreviewModal() {
   refs.previewModal.classList.add('hidden');
   refs.previewModal.classList.remove('flex');
+
+  // Analytics: 仮想ページビュー（モーダルを閉じる）
+  trackPageView('/');
 }
 
 function openPreviewModal(content, hint) {
@@ -198,6 +201,9 @@ function openPreviewModal(content, hint) {
   refs.previewModalContent.textContent = content || '';
   refs.previewModal.classList.remove('hidden');
   refs.previewModal.classList.add('flex');
+
+  // Analytics: 仮想ページビュー（プロンプトプレビュー）
+  trackPageView('/modal/prompt-preview');
 }
 
 function closeImagePreviewModal() {
@@ -205,6 +211,9 @@ function closeImagePreviewModal() {
   refs.imagePreviewModal.classList.remove('flex');
   refs.imagePreviewModalImage.removeAttribute('src');
   refs.imagePreviewPromptContent.textContent = '';
+
+  // Analytics: 仮想ページビュー（モーダルを閉じる）
+  trackPageView('/');
 }
 
 function openImagePreviewModal(imageUrl, promptText) {
@@ -212,6 +221,9 @@ function openImagePreviewModal(imageUrl, promptText) {
   refs.imagePreviewPromptContent.textContent = promptText || '（プロンプト情報なし）';
   refs.imagePreviewModal.classList.remove('hidden');
   refs.imagePreviewModal.classList.add('flex');
+
+  // Analytics: 仮想ページビュー（画像プレビュー）
+  trackPageView('/modal/image-preview');
 }
 
 function resetModelCatalog(provider) {
@@ -423,6 +435,14 @@ async function setReferenceImageFromFile(file) {
     refs.referenceImageUrlInput.value = '';
     refs.referenceImageInput.value = '';
     setReferenceImageValidationMessage('');
+
+    // Analytics: 参照画像アップロード（ファイル）
+    trackEvent(EVENTS.REFERENCE_IMAGE_UPLOAD, {
+      source: 'file',
+      mime_type: file.type,
+      active_provider: state.settings.activeProvider
+    });
+
     render(false);
   } catch (error) {
     setReferenceImageValidationMessage(`参照画像を読み込めませんでした: ${summarizeError(error)}`);
@@ -445,6 +465,13 @@ function setReferenceImageFromUrl(rawUrl) {
     };
     refs.referenceImageInput.value = '';
     setReferenceImageValidationMessage('');
+
+    // Analytics: 参照画像アップロード（URL）
+    trackEvent(EVENTS.REFERENCE_IMAGE_UPLOAD, {
+      source: 'url',
+      active_provider: state.settings.activeProvider
+    });
+
     render(false);
   } catch (error) {
     setReferenceImageValidationMessage(`参照画像URLが不正です: ${summarizeError(error)}`);
@@ -909,6 +936,13 @@ async function handleRemoveCard(cardId) {
   }
   state.runningCardIds.delete(cardId);
   await deleteCard(removed.id);
+
+  // Analytics: カード削除
+  trackEvent(EVENTS.CARD_DELETION, {
+    card_status: removed.status,
+    active_provider: state.settings.activeProvider
+  });
+
   render();
 }
 
