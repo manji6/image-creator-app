@@ -63,6 +63,7 @@ import {
   normalizePromptLines,
   summarizeError
 } from './utils.js';
+import { trackEvent, trackPageView, EVENTS, ERROR_TYPES } from './analytics/index.js';
 
 function createCatalogEntry() {
   return {
@@ -771,6 +772,16 @@ function setGlobalMessage(type, text) {
 
   refs.globalMessage.textContent = text;
   refs.globalMessage.classList.add(...globalMessageClasses(type));
+
+  // Analytics: エラー発生時のみトラッキング
+  if (type === 'error') {
+    trackEvent(EVENTS.ERROR_OCCURRENCE, {
+      error_type: classifyErrorFromMessage(text),
+      message: text,
+      component: inferErrorComponent(text),
+      active_provider: state.settings.activeProvider
+    });
+  }
 }
 
 function updateProviderConfigurationMessage() {
@@ -866,6 +877,14 @@ async function addCardsFromBatch() {
   refs.promptBatchInput.value = '';
   render();
   setGlobalMessage('success', `${cards.length}件のカードを追加しました。`);
+
+  // Analytics: カード作成
+  trackEvent(EVENTS.CARD_CREATION, {
+    count: cards.length,
+    mode: state.settings.mode,
+    active_provider: state.settings.activeProvider
+  });
+
   return cards;
 }
 
@@ -945,9 +964,28 @@ async function processCard(cardId, provider) {
     card.provider = result.provider;
     card.model = result.model;
     card.errorMessage = '';
+
+    // Analytics: 生成成功
+    trackEvent(EVENTS.GENERATION_CARD_SUCCESS, {
+      card_id: hashCardId(cardId),
+      provider: result.provider,
+      model: result.model,
+      has_reference_image: hasReferenceImageValue(state.referenceImage),
+      active_provider: provider
+    });
   } catch (error) {
     card.status = CARD_STATUSES.error;
     card.errorMessage = summarizeError(error);
+
+    // Analytics: 生成失敗
+    trackEvent(EVENTS.GENERATION_CARD_FAILED, {
+      card_id: hashCardId(cardId),
+      provider,
+      model: getActiveProviderModel(settingsSnapshot),
+      error_type: classifyError(error),
+      error_message: summarizeError(error),
+      active_provider: provider
+    });
   } finally {
     state.abortControllers.delete(cardId);
     state.runningCardIds.delete(cardId);
@@ -985,6 +1023,16 @@ async function processGenerationQueue(cardIds) {
   setGlobalMessage('info', `生成開始: ${queue.length}件 (${provider})`);
   render();
 
+  // Analytics: 一括生成開始
+  const startTime = Date.now();
+  trackEvent(EVENTS.GENERATION_BATCH_START, {
+    queue_length: queue.length,
+    provider,
+    model: getActiveProviderModel(state.settings),
+    concurrency,
+    active_provider: provider
+  });
+
   try {
     const workers = Array.from({ length: Math.min(concurrency, queue.length) }).map(async () => {
       while (queue.length > 0) {
@@ -1002,6 +1050,17 @@ async function processGenerationQueue(cardIds) {
   }
 
   const { counts } = buildStatusSummary(state.cards);
+  const duration = Date.now() - startTime;
+
+  // Analytics: 一括生成完了
+  trackEvent(EVENTS.GENERATION_BATCH_COMPLETE, {
+    total: cardIds.length,
+    success_count: counts.success,
+    error_count: counts.error,
+    duration_ms: duration,
+    active_provider: provider
+  });
+
   if (counts.error > 0) {
     setGlobalMessage('info', `生成完了: 成功${counts.success} / 失敗${counts.error}`);
   } else {
@@ -1347,6 +1406,64 @@ function bindEvents() {
   });
 }
 
+// Analytics用ユーティリティ関数
+
+// カードIDのプライバシー保護（ハッシュ化）
+function hashCardId(cardId) {
+  return `card_${cardId.slice(0, 8)}`;
+}
+
+// エラー分類（Error型→エラータイプ文字列）
+function classifyError(error) {
+  const message = summarizeError(error).toLowerCase();
+
+  if (message.includes('api key') || message.includes('unauthorized')) {
+    return ERROR_TYPES.CONFIG;
+  }
+  if (message.includes('network') || message.includes('fetch')) {
+    return ERROR_TYPES.NETWORK;
+  }
+  if (message.includes('validation') || message.includes('invalid')) {
+    return ERROR_TYPES.VALIDATION;
+  }
+  if (message.includes('reference') || message.includes('image')) {
+    return ERROR_TYPES.REFERENCE_IMAGE;
+  }
+  if (message.includes('http') || message.includes('status')) {
+    return ERROR_TYPES.API;
+  }
+
+  return ERROR_TYPES.UNKNOWN;
+}
+
+// エラーメッセージから分類（文字列→エラータイプ文字列）
+function classifyErrorFromMessage(message) {
+  const lowerMessage = message.toLowerCase();
+
+  if (lowerMessage.includes('テンプレート') || lowerMessage.includes('validation')) {
+    return ERROR_TYPES.VALIDATION;
+  }
+  if (lowerMessage.includes('api') || lowerMessage.includes('未設定')) {
+    return ERROR_TYPES.CONFIG;
+  }
+  if (lowerMessage.includes('参照画像')) {
+    return ERROR_TYPES.REFERENCE_IMAGE;
+  }
+
+  return ERROR_TYPES.UNKNOWN;
+}
+
+// エラー発生コンポーネント推定
+function inferErrorComponent(message) {
+  if (message.includes('テンプレート')) return 'template';
+  if (message.includes('API設定') || message.includes('APIキー')) return 'settings';
+  if (message.includes('モデル')) return 'model';
+  if (message.includes('参照画像')) return 'reference_image';
+  if (message.includes('ダウンロード')) return 'download';
+  if (message.includes('初期化')) return 'initialization';
+  return 'unknown';
+}
+
 async function init() {
   try {
     state.settings = deepMerge(DEFAULT_SETTINGS, await loadSettings());
@@ -1361,6 +1478,14 @@ async function init() {
     await fetchModelRequirement(active, getActiveProviderModel(state.settings), false);
 
     updateProviderConfigurationMessage();
+
+    // Analytics: セッション開始
+    trackEvent(EVENTS.APP_SESSION_START, {
+      cards_count: state.cards.length,
+      has_api_keys: isProviderConfigured(active, state.settings),
+      default_provider: active,
+      active_provider: active
+    });
   } catch (error) {
     console.error(error);
     setGlobalMessage('error', `初期化に失敗しました: ${summarizeError(error)}`);
