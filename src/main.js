@@ -856,6 +856,13 @@ async function handleSaveSettings() {
   syncSettingsFromForm();
   await saveSettings(stripSessionOnlySettings(state.settings));
   setGlobalMessage('success', '設定を保存しました (Firefly Access Tokenはセッション内のみ保持)。');
+
+  // Analytics: 設定保存
+  trackEvent(EVENTS.SETTINGS_SAVE, {
+    mode: state.settings.mode,
+    active_provider: state.settings.activeProvider
+  });
+
   render();
 }
 
@@ -924,6 +931,17 @@ async function handleRegenerate(cardId) {
     setGlobalMessage('info', 'このカードはすでに生成中です。');
     return;
   }
+
+  const card = state.cards.find((entry) => entry.id === cardId);
+  if (card) {
+    // Analytics: 個別再生成
+    trackEvent(EVENTS.CARD_REGENERATE, {
+      card_id: hashCardId(cardId),
+      previous_status: card.status,
+      active_provider: provider
+    });
+  }
+
   await processCard(cardId, provider);
 }
 
@@ -1174,8 +1192,24 @@ async function handleDownloadAllCards() {
   setGlobalMessage('info', `${downloadable.length}件の画像をダウンロード準備中です...`);
   render();
 
+  // Analytics: 一括ダウンロード開始
+  trackEvent(EVENTS.BATCH_DOWNLOAD_START, {
+    total_cards: downloadable.length,
+    active_provider: state.settings.activeProvider
+  });
+
   try {
     const result = await downloadCardsBundle(downloadable);
+
+    // Analytics: 一括ダウンロード完了
+    trackEvent(EVENTS.BATCH_DOWNLOAD_COMPLETE, {
+      success_count: result.success,
+      total: result.total,
+      mode: result.mode,
+      metadata_embedded: result.metadataEmbedded || 0,
+      active_provider: state.settings.activeProvider
+    });
+
     if (result.mode === 'zip') {
       setGlobalMessage(
         'success',
@@ -1230,6 +1264,13 @@ function switchActiveProvider(nextProvider) {
   void fetchModelCatalog(nextProvider, false);
   void fetchModelRequirement(nextProvider, getActiveProviderModel(state.settings), false);
   updateProviderConfigurationMessage();
+
+  // Analytics: プロバイダー切り替え
+  trackEvent(EVENTS.PROVIDER_SWITCH, {
+    from: previousProvider,
+    to: nextProvider,
+    active_provider: nextProvider
+  });
 }
 
 function bindEvents() {
