@@ -1,4 +1,4 @@
-# Image Batch Studio
+# Image Creator
 
 ローカルファーストで複数プロンプトを一括画像生成する静的Webアプリです。
 
@@ -92,6 +92,112 @@ npm test
    - `CLOUDFLARE_API_TOKEN`
    - `CLOUDFLARE_ACCOUNT_ID`
 2. GitHub Actionsの `Deploy Firefly Worker` を手動実行
+
+## Google Tag Manager 設定
+
+アプリは Google Tag Manager (GTM) を使用してユーザー行動を計測します。
+
+### 前提
+- GTMコンテナIDは `src/analytics/config.js` の `gtmContainerId` で設定
+- GTMスクリプトは動的に読み込まれるため、HTMLファイルの変更は不要
+- 18種類のカスタムイベントを送信（カード作成、画像生成、エラー発生など）
+
+### GTMコンテナ設定手順
+
+#### 1. GA4測定IDの取得
+1. [Google Analytics](https://analytics.google.com/) でGA4プロパティを作成
+2. 「管理」→「データストリーム」→「ウェブ」で測定ID（`G-XXXXXXXXXX`）を取得
+
+#### 2. データレイヤー変数の作成
+GTMコンテナで「変数」→「新規」から以下を作成：
+
+| 変数名 | タイプ | データレイヤー変数名 |
+|-------|-------|-----------------|
+| DLV - Session ID | データレイヤー変数 | `session_id` |
+| DLV - Environment | データレイヤー変数 | `environment` |
+| DLV - Active Provider | データレイヤー変数 | `active_provider` |
+| DLV - Count | データレイヤー変数 | `count` |
+| DLV - Queue Length | データレイヤー変数 | `queue_length` |
+| DLV - Provider | データレイヤー変数 | `provider` |
+| DLV - Model | データレイヤー変数 | `model` |
+| DLV - Error Type | データレイヤー変数 | `error_type` |
+| DLV - Success Count | データレイヤー変数 | `success_count` |
+| DLV - Total | データレイヤー変数 | `total` |
+| DLV - Duration MS | データレイヤー変数 | `duration_ms` |
+
+#### 3. トリガーの作成
+「トリガー」→「新規」から各イベント用のカスタムイベントトリガーを作成：
+
+| トリガー名 | トリガータイプ | イベント名 |
+|----------|------------|----------|
+| CE - App Session Start | カスタムイベント | `app_session_start` |
+| CE - Card Creation | カスタムイベント | `card_creation` |
+| CE - Generation Batch Start | カスタムイベント | `generation_batch_start` |
+| CE - Generation Card Success | カスタムイベント | `generation_card_success` |
+| CE - Generation Card Failed | カスタムイベント | `generation_card_failed` |
+| CE - Generation Batch Complete | カスタムイベント | `generation_batch_complete` |
+| CE - Error Occurrence | カスタムイベント | `error_occurrence` |
+| CE - Batch Download Start | カスタムイベント | `batch_download_start` |
+| CE - Batch Download Complete | カスタムイベント | `batch_download_complete` |
+| CE - Provider Switch | カスタムイベント | `provider_switch` |
+| CE - Settings Save | カスタムイベント | `settings_save` |
+
+その他のイベント（`card_regenerate`, `card_deletion`, `reference_image_upload`, `modal_open`, `modal_close`）も同様に作成可能。
+
+#### 4. GA4タグの作成
+
+**GA4設定タグ**:
+- タグタイプ: `Google アナリティクス: GA4 設定`
+- 測定ID: `G-XXXXXXXXXX`（手順1で取得）
+- トリガー: `すべてのページ`
+
+**GA4イベントタグ（例: app_session_start）**:
+- タグタイプ: `Google アナリティクス: GA4 イベント`
+- 設定タグ: 上記のGA4設定タグを選択
+- イベント名: `app_session_start`
+- トリガー: `CE - App Session Start`
+- イベントパラメータ:
+  - `session_id`: `{{DLV - Session ID}}`
+  - `environment`: `{{DLV - Environment}}`
+  - `active_provider`: `{{DLV - Active Provider}}`
+
+他のイベントも同様に作成し、各イベントに応じたパラメータを設定。
+
+#### 5. プレビューモードでテスト
+1. GTMで「プレビュー」をクリック
+2. アプリのURLを入力して接続
+3. Tag Assistant で以下を確認：
+   - イベントが発火している（Summaryタブ）
+   - データレイヤー変数が取得できている（Variablesタブ）
+   - GA4タグが発火している（Tagsタブ）
+
+#### 6. 公開
+- 「送信」ボタンでコンテナを公開
+- GA4の「リアルタイム」レポートでイベント受信を確認
+
+### 送信されるイベント一覧
+`src/analytics/config.js` の `EVENTS` 定数で全18種類のイベントが定義されています：
+
+**必須イベント**:
+- `app_session_start`: アプリ起動
+- `card_creation`: カード作成
+- `generation_batch_start`: 一括生成開始
+- `generation_card_success`: 画像生成成功
+- `generation_card_failed`: 画像生成失敗
+- `generation_batch_complete`: 一括生成完了
+- `error_occurrence`: エラー発生
+
+**推奨イベント**:
+- `batch_download_start`, `batch_download_complete`: 一括ダウンロード
+- `provider_switch`: プロバイダー切り替え
+- `settings_save`: 設定保存
+- `card_regenerate`: 個別再生成
+
+**オプションイベント**:
+- `page_view`: モーダル表示（仮想ページビュー）
+- `card_deletion`: カード削除
+- `reference_image_upload`: 参照画像アップロード
+- `modal_open`, `modal_close`: モーダル操作
 
 ## GitHub Pages デプロイ
 `.github/workflows/deploy-pages.yml` により `main` pushで公開されます。

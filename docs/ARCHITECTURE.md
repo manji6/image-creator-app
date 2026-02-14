@@ -1,10 +1,10 @@
-# Architecture: Image Batch Studio
+# Architecture: Image Creator
 
 - Document version: 1.0
 - Last updated: 2026-02-11
 
 ## 1. System Overview
-Image Batch Studio is a static, browser-first single-page app.
+Image Creator is a static, browser-first single-page app.
 
 ```mermaid
 flowchart LR

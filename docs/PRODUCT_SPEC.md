@@ -1,4 +1,4 @@
-# Product Spec: Image Batch Studio
+# Product Spec: Image Creator
 
 - Document version: 1.0
 - Last updated: 2026-02-11
