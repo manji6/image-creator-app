@@ -14,11 +14,29 @@ This guide defines how to continue development consistently across environments 
 
 ## 3. Local Commands
 
+### Development (Hot Reload)
+```bash
+npm run dev
+```
+- Starts Eleventy dev server at `http://127.0.0.1:8080`.
+- Auto-reloads browser on template changes in `src-templates/`.
+- **Use this for daily development**.
+
+### Build
+```bash
+npm run build
+```
+- Generates static HTML from `src-templates/` to `_site/`.
+- Used by GitHub Actions for deployment.
+
+### Preview (Production Build)
 ```bash
 npm run serve
 ```
-- Starts local static server at `http://127.0.0.1:4173` by default.
+- Serves pre-built `_site/` at `http://127.0.0.1:4173`.
+- Useful for testing production build locally.
 
+### Test
 ```bash
 npm test
 ```
@@ -26,14 +44,28 @@ npm test
 
 ## 4. Repository Layout
 
-- `index.html`: UI skeleton and Tailwind utility classes.
-- `styles.css`: minimal custom styles and motion/background.
-- `src/main.js`: application orchestration and event binding.
-- `src/providers/`: provider-specific API logic.
-- `src/*`: modular domain logic (template, model catalog, download, etc.).
-- `tests/`: unit + contract tests.
-- `workers/firefly-proxy/`: optional Cloudflare Worker for Firefly proxy mode.
-- `docs/`: product/architecture/security/development docs.
+### Source Templates (Eleventy)
+- `src-templates/`: Nunjucks templates (`.njk` files).
+  - `_includes/layouts/base.njk`: Base layout for all pages.
+  - `_includes/partials/`: Reusable components (head, nav, footer).
+  - `_data/site.json`: Global site metadata.
+  - `index.njk`, `help.njk`, `guide/firefly-token.njk`: Page templates.
+- `.eleventy.cjs`: Eleventy configuration (CommonJS module).
+
+### Build Output
+- `_site/`: Generated static HTML (Git-ignored, deployed to GitHub Pages).
+
+### Application Code
+- `src/main.js`: Application orchestration and event binding.
+- `src/providers/`: Provider-specific API logic (fal, google, firefly).
+- `src/analytics/`: Analytics abstraction layer (GTM/GA4).
+- `src/*.js`: Modular domain logic (template, model catalog, download, etc.).
+- `styles.css`: Custom CSS and animations.
+
+### Other
+- `tests/`: Unit + contract tests.
+- `workers/firefly-proxy/`: Optional Cloudflare Worker for Firefly proxy mode.
+- `docs/`: Product/architecture/security/development docs.
 
 ## 5. Daily Development Workflow
 

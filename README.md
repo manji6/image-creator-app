@@ -19,6 +19,20 @@
 - ユーザーデータは `IndexedDB` のみ保存（サーバーDBなし）
 - Fireflyは **Proxy URL** または **Client ID + Access Token** のどちらかで利用可能
 
+## ビルドシステム
+
+このプロジェクトは [Eleventy](https://www.11ty.dev/) 静的サイトジェネレーターを使用しています：
+
+- **テンプレートソース**: `src-templates/` （Nunjucks形式）
+- **ビルド出力**: `_site/` （GitHub Pagesで公開）
+- **レイアウト管理**: `src-templates/_includes/layouts/base.njk`
+- **共通パーツ**: `src-templates/_includes/partials/` （head, nav, footer）
+
+開発時の変更:
+- `src-templates/` 配下を編集
+- `npm run dev` でブラウザに即座に反映（ホットリロード）
+- デプロイ時は `npm run build` で `_site/` に静的HTML生成
+
 ## ドキュメント
 
 開発継続・引き継ぎ時は以下を参照してください。
@@ -43,11 +57,19 @@
 - Firefly Access Token は保存時に永続化されずセッションのみ保持
 
 ## ローカル実行
-```bash
-npm run serve
-```
 
-- 起動後: `http://127.0.0.1:4173`
+### 開発モード（ホットリロード有効）
+```bash
+npm run dev
+```
+- Eleventy開発サーバーが起動: `http://127.0.0.1:8080`
+- テンプレート編集時に自動的にブラウザがリロードされます
+
+### ビルド & プレビュー
+```bash
+npm run build   # 静的ファイルを_site/に生成
+npm run serve   # 生成済みファイルをhttp://127.0.0.1:4173で配信
+```
 
 テスト:
 ```bash

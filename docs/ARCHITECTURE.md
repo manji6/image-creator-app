@@ -18,17 +18,35 @@ flowchart LR
 
 ## 2. Runtime Layers
 
-- UI Layer (`index.html`, `styles.css`)
+- **Template Layer** (Eleventy Build-Time)
+  - Source: `src-templates/` (Nunjucks `.njk` files).
+  - Output: `_site/` (static HTML with templated navigation, head, footer).
+  - Tooling: Eleventy 2.0.1 (`npm run build` / `npm run dev`).
+  - **Critical**: This layer runs at build time, not runtime.
+
+- **UI Layer** (`_site/*.html`, `styles.css`)
   - Tailwind CDN + custom CSS.
   - Form controls, cards grid, preview modals.
-- Application Layer (`src/main.js`)
+  - Generated from Template Layer.
+
+- **Application Layer** (`src/main.js`)
   - Event wiring, rendering orchestration, generation queue control.
-- Domain Modules (`src/*.js`)
+  - Loaded via `<script type="module">` in `_site/index.html`.
+
+- **Analytics Layer** (`src/analytics/`)
+  - Abstraction over GTM/GA4 for user behavior tracking.
+  - Session management, event tracking, provider pattern.
+  - Loaded in `src/main.js` via `import { trackEvent } from './analytics/index.js'`.
+
+- **Domain Modules** (`src/*.js`)
   - Template rendering, model catalog, reference image inference, download pipeline.
-- Provider Layer (`src/providers/*.js`)
-  - API-specific request/polling logic.
-- Persistence Layer (`src/db.js`)
+
+- **Provider Layer** (`src/providers/*.js`)
+  - API-specific request/polling logic (fal, google, firefly).
+
+- **Persistence Layer** (`src/db.js`)
   - IndexedDB load/save/upsert/delete.
+  - sessionStorage for model catalog caching.
 
 ## 3. Key Module Responsibilities
 
