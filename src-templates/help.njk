@@ -20,6 +20,7 @@ includeMainJS: false
       <p class="mt-3 text-slate-700 leading-relaxed">
         複数のプロンプトから一括で画像を生成できる、ローカルファースト設計のWebアプリケーションです。
         すべてのデータ（設定、カード、APIキー）はブラウザ内のIndexedDBにのみ保存され、サーバー側には一切送信されません。
+        設定はリアルタイムに自動保存されるため、手動で保存する必要はありません。
       </p>
     </div>
 
@@ -31,7 +32,7 @@ includeMainJS: false
           <h3 class="font-semibold text-slateBrand">1. プロバイダーを選択</h3>
           <p class="mt-2 text-sm text-slate-700">
             <strong>fal.ai</strong>、<strong>Google AI Studio</strong>、<strong>Adobe Firefly</strong> の3つから選択できます。
-            それぞれのAPIキーを入力してください。
+            それぞれのAPIキーを入力してください。入力した設定は自動的にブラウザに保存されます。
           </p>
         </div>
 
@@ -53,6 +54,7 @@ includeMainJS: false
           <h3 class="font-semibold text-slateBrand">4. カードを作成して生成</h3>
           <p class="mt-2 text-sm text-slate-700">
             「カードを作成」ボタンでプロンプトカードを生成し、「カードを全て生成」で一括生成を開始します。
+            各カードの「生成」ボタンで個別に実行することもできます。
           </p>
         </div>
 
@@ -60,6 +62,77 @@ includeMainJS: false
           <h3 class="font-semibold text-slateBrand">5. 結果をダウンロード</h3>
           <p class="mt-2 text-sm text-slate-700">
             個別ダウンロードまたは全カード一括ダウンロード（ZIP形式）が可能です。
+            PNGファイルにはプロンプト情報がメタデータとして埋め込まれます。
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <div class="border-t border-slate-200 pt-6">
+      <h2 class="font-heading text-2xl font-bold text-slateBrand">カードの機能</h2>
+
+      <div class="mt-4 space-y-4">
+        <div class="rounded-xl border border-slate-200 bg-white p-4">
+          <h3 class="font-semibold text-slateBrand">カードごとのプロバイダ・モデル選択</h3>
+          <p class="mt-2 text-sm text-slate-700">
+            各カードはグローバル設定のプロバイダ・モデルを引き継ぎますが、カードごとに個別に変更できます。
+            カード上部のプロバイダ表示をクリックするとエディターが開き、プロバイダとモデルを変更できます。
+          </p>
+        </div>
+
+        <div class="rounded-xl border border-slate-200 bg-white p-4">
+          <h3 class="font-semibold text-slateBrand">共通プロンプトのインラインプレビュー</h3>
+          <p class="mt-2 text-sm text-slate-700">
+            各カードの「共通プロンプトを表示」をクリックすると、現在設定されている共通プロンプトの内容を確認できます。
+            個別プロンプトと合わせて、生成時にどのようなプロンプトが送信されるか把握できます。
+          </p>
+        </div>
+
+        <div class="rounded-xl border border-slate-200 bg-white p-4">
+          <h3 class="font-semibold text-slateBrand">設定変更あり（Dirty State）バッジ</h3>
+          <p class="mt-2 text-sm text-slate-700">
+            生成後にプロバイダ、モデル、共通プロンプト、個別プロンプトのいずれかを変更すると、
+            カードに<span class="inline-block rounded-full bg-amber-100 px-2 py-0.5 text-xs font-semibold text-amber-700">設定変更あり</span>バッジが表示されます。
+            現在の画像がまだ再生成されていないことが一目で分かります。
+          </p>
+        </div>
+
+        <div class="rounded-xl border border-slate-200 bg-white p-4">
+          <h3 class="font-semibold text-slateBrand">画像プレビュー</h3>
+          <p class="mt-2 text-sm text-slate-700">
+            生成された画像をクリックすると、フルスクリーンのプレビューモーダルが開きます。
+            モーダルにはプロバイダ・モデル情報と生成に使用されたプロンプトが表示されます。
+          </p>
+        </div>
+
+        <div class="rounded-xl border border-slate-200 bg-white p-4">
+          <h3 class="font-semibold text-slateBrand">プロンプトプレビュー</h3>
+          <p class="mt-2 text-sm text-slate-700">
+            各カードの「プレビュー」ボタンで、APIに送信される最終的なプロンプト全文をモーダルで確認できます。
+            クリップボードへのコピーも可能です。
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <div class="border-t border-slate-200 pt-6">
+      <h2 class="font-heading text-2xl font-bold text-slateBrand">設定の保存とエクスポート</h2>
+
+      <div class="mt-4 space-y-4">
+        <div class="rounded-xl border border-slate-200 bg-white p-4">
+          <h3 class="font-semibold text-slateBrand">自動保存</h3>
+          <p class="mt-2 text-sm text-slate-700">
+            プロバイダ、モデル、APIキー、共通プロンプトなどの設定変更は、入力後に自動的にブラウザのIndexedDBに保存されます。
+            ページをリロードしても設定は維持されます。Firefly Access Tokenのみセッション限定で、リロード時に消去されます。
+          </p>
+        </div>
+
+        <div class="rounded-xl border border-slate-200 bg-white p-4">
+          <h3 class="font-semibold text-slateBrand">設定エクスポート/インポート</h3>
+          <p class="mt-2 text-sm text-slate-700">
+            ヘッダーの「設定エクスポート」ボタンで現在の設定をJSONファイルとして保存できます。
+            「設定インポート」で以前の設定を復元したり、異なる作業コンテキストを切り替えて利用できます。
+            エクスポート時にFirefly Access Tokenは自動的に除外されます。
           </p>
         </div>
       </div>
@@ -82,11 +155,11 @@ includeMainJS: false
         <div class="rounded-xl border border-slate-200 bg-white p-4">
           <h3 class="font-semibold text-slateBrand">Advancedモード</h3>
           <p class="mt-2 text-sm text-slate-700">
-            共通プロンプト内で <code class="rounded bg-slate-100 px-1 text-sea">{{item}}</code> を使ってテンプレート展開できます。
+            共通プロンプト内で <code class="rounded bg-slate-100 px-1 text-sea">&#123;&#123;item&#125;&#125;</code> を使ってテンプレート展開できます。
             <code class="rounded bg-slate-100 px-1 text-sea">${item}</code> や <code class="rounded bg-slate-100 px-1 text-sea">{$item}</code> も互換性があります。
           </p>
           <div class="mt-3 rounded bg-slate-50 p-3 text-xs font-mono text-slate-600">
-            例: 共通「{{item}}の猫」+ 行「青い」 → 「青いの猫」
+            例: 共通「&#123;&#123;item&#125;&#125;の猫」+ 行「青い」 → 「青いの猫」
           </div>
         </div>
       </div>
@@ -117,12 +190,15 @@ includeMainJS: false
         <div class="rounded-xl border border-sea/20 bg-sea/5 p-4">
           <h3 class="font-semibold text-slateBrand">Adobe Firefly</h3>
           <p class="mt-2 text-sm text-slate-700">
-            現在は<strong>Directモード</strong>のみ対応しています:
+            2つの接続方式から選択できます:
           </p>
           <ul class="mt-2 list-disc list-inside space-y-1 text-sm text-slate-700">
-            <li>Client ID + Access Tokenを直接入力</li>
-            <li>Proxyモードは今後準備予定</li>
+            <li><strong>Direct:</strong> Client ID + Access Tokenを直接入力して直接API実行</li>
+            <li><strong>Proxy:</strong> Proxy URL（任意でProxy Token）を設定して中継サーバー経由で実行</li>
           </ul>
+          <p class="mt-2 text-xs text-slate-500">
+            DirectとProxyのどちらか一方が設定されていればFireflyを利用できます。
+          </p>
           <p class="mt-3 text-sm text-slate-600">
             詳しくは <a href="/guide/firefly-token/" class="font-semibold text-sea underline hover:text-sea/80">Fireflyガイド</a> をご覧ください。
           </p>
@@ -138,13 +214,15 @@ includeMainJS: false
           <h3 class="font-semibold text-slateBrand">Q. APIキーはどこに保存されますか？</h3>
           <p class="mt-2 text-sm text-slate-700">
             ブラウザのIndexedDBにのみ保存されます。サーバーには送信されません。
+            設定変更時に自動的に保存されるため、手動操作は不要です。
           </p>
         </div>
 
         <div>
           <h3 class="font-semibold text-slateBrand">Q. Firefly Access Tokenは保存されますか？</h3>
           <p class="mt-2 text-sm text-slate-700">
-            セッション中のみメモリに保持され、「設定を保存」しても永続化されません。
+            セッション中のみメモリに保持され、自動保存やエクスポートの対象外です。
+            ページをリロードすると再入力が必要になります。
           </p>
         </div>
 
@@ -152,6 +230,21 @@ includeMainJS: false
           <h3 class="font-semibold text-slateBrand">Q. 生成した画像はどこに保存されますか？</h3>
           <p class="mt-2 text-sm text-slate-700">
             カード情報（画像URLを含む）がIndexedDBに保存されます。実際の画像ファイルは各プロバイダーのサーバーにあります。
+          </p>
+        </div>
+
+        <div>
+          <h3 class="font-semibold text-slateBrand">Q. カードごとに違うプロバイダで生成できますか？</h3>
+          <p class="mt-2 text-sm text-slate-700">
+            はい。各カードのプロバイダ表示部分をクリックして、カードごとに個別にプロバイダとモデルを変更できます。
+            カード作成時はグローバル設定を引き継ぎます。
+          </p>
+        </div>
+
+        <div>
+          <h3 class="font-semibold text-slateBrand">Q. 設定を別のブラウザに移行できますか？</h3>
+          <p class="mt-2 text-sm text-slate-700">
+            「設定エクスポート」でJSON形式で書き出し、移行先で「設定インポート」から読み込むことができます。
           </p>
         </div>
 

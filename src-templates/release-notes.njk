@@ -1,0 +1,205 @@
+---
+layout: layouts/base.njk
+title: リリースノート - Image Creator
+description: Image Creatorの更新履歴とリリースノート
+activeNav: release-notes
+headerSubtitle: Release Notes
+headerTitle: リリースノート
+headerDescription: Image Creatorの更新履歴です。
+hasHeaderActions: false
+showFooter: true
+stylesPath: ./styles.css
+includeJSZip: false
+includeMainJS: false
+---
+
+<article class="rounded-3xl border border-white/60 bg-white/85 p-8 shadow-card backdrop-blur-md">
+  <section class="space-y-8">
+
+    <div>
+      <div class="flex items-center gap-3">
+        <h2 class="font-heading text-2xl font-bold text-slateBrand">v0.5.0</h2>
+        <span class="rounded-full bg-sea/10 px-3 py-1 text-xs font-semibold text-sea">Latest</span>
+      </div>
+      <p class="mt-1 text-sm text-slate-500">2026-02-15</p>
+
+      <div class="mt-4 space-y-4">
+        <div>
+          <h3 class="font-semibold text-slateBrand">カードごとのプロバイダ・モデル選択</h3>
+          <p class="mt-1 text-sm text-slate-700">
+            各カードにプロバイダとモデルを個別に設定できるようになりました。
+            カード上部のプロバイダ表示をクリックすると、コンパクトなエディターが開きます。
+            カード作成時はグローバル設定を自動的に引き継ぎます。
+          </p>
+        </div>
+
+        <div>
+          <h3 class="font-semibold text-slateBrand">設定変更あり（Dirty State）バッジ</h3>
+          <p class="mt-1 text-sm text-slate-700">
+            生成後にプロンプトやプロバイダ/モデルを変更すると、カードに「設定変更あり」バッジが表示されます。
+            現在の画像と設定が一致しないことが視覚的に分かります。
+          </p>
+        </div>
+
+        <div>
+          <h3 class="font-semibold text-slateBrand">共通プロンプトのインラインプレビュー</h3>
+          <p class="mt-1 text-sm text-slate-700">
+            各カードで「共通プロンプトを表示」をクリックすると、現在設定されている共通プロンプトの内容を確認できます。
+          </p>
+        </div>
+
+        <div>
+          <h3 class="font-semibold text-slateBrand">設定の完全自動保存</h3>
+          <p class="mt-1 text-sm text-slate-700">
+            すべての設定変更が自動的にIndexedDBに保存されるようになりました。
+            手動の「設定を保存」ボタンは廃止され、よりシンプルなUIになりました。
+            Firefly Access Tokenは引き続きセッション内のみ保持されます。
+          </p>
+        </div>
+
+        <div>
+          <h3 class="font-semibold text-slateBrand">設定エクスポート/インポート</h3>
+          <p class="mt-1 text-sm text-slate-700">
+            ヘッダーの「設定エクスポート」で現在の設定をJSON形式でダウンロードできます。
+            「設定インポート」で復元でき、異なるプロジェクトやブラウザ間での設定移行が可能です。
+          </p>
+        </div>
+
+        <div>
+          <h3 class="font-semibold text-slateBrand">画像プレビューモーダルの改善</h3>
+          <p class="mt-1 text-sm text-slate-700">
+            生成画像クリック時のプレビューモーダルに、プロバイダ・モデル情報と生成プロンプトが表示されるようになりました。
+          </p>
+        </div>
+
+        <div>
+          <h3 class="font-semibold text-slateBrand">Firefly Proxy URL/Token入力</h3>
+          <p class="mt-1 text-sm text-slate-700">
+            Fireflyの設定画面にProxy URLとProxy Tokenの入力欄が追加されました。
+            DirectモードとProxyモードの切り替えがUIから直接行えます。
+          </p>
+        </div>
+
+        <div>
+          <h3 class="text-sm font-semibold text-slate-500">バグ修正</h3>
+          <ul class="mt-1 list-disc list-inside space-y-1 text-sm text-slate-600">
+            <li>カードごとの生成ボタンがグローバルプロバイダ設定状態で無効化されていた問題を修正</li>
+            <li>共通プロンプト変更時にDirty Stateバッジが正しく反映されなかった問題を修正</li>
+            <li>共通プロンプトやAPIキーがリロード時に消えていた問題を修正（自動保存の追加）</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="border-t border-slate-200 pt-8">
+      <h2 class="font-heading text-2xl font-bold text-slateBrand">v0.4.0</h2>
+      <p class="mt-1 text-sm text-slate-500">2026-02-14</p>
+
+      <div class="mt-4 space-y-4">
+        <div>
+          <h3 class="font-semibold text-slateBrand">Eleventy静的サイトジェネレーターへの移行</h3>
+          <p class="mt-1 text-sm text-slate-700">
+            テンプレートシステムをEleventy（Nunjucks）に移行しました。
+            レイアウト・ナビゲーション・フッターの共通化により、複数ページの管理が容易になりました。
+          </p>
+        </div>
+
+        <div>
+          <h3 class="font-semibold text-slateBrand">使い方ガイド/Fireflyガイドページ追加</h3>
+          <p class="mt-1 text-sm text-slate-700">
+            ナビゲーション付きのヘルプページとFirefly Access Token取得ガイドを追加しました。
+          </p>
+        </div>
+
+        <div>
+          <h3 class="font-semibold text-slateBrand">UIコントラクトテストの強化</h3>
+          <p class="mt-1 text-sm text-slate-700">
+            Eleventyビルド成果物に対するDOM要素の存在チェック、内部リンクの整合性テスト、ナビゲーションリンクテストを追加しました。
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <div class="border-t border-slate-200 pt-8">
+      <h2 class="font-heading text-2xl font-bold text-slateBrand">v0.3.0</h2>
+      <p class="mt-1 text-sm text-slate-500">2026-02-13</p>
+
+      <div class="mt-4 space-y-4">
+        <div>
+          <h3 class="font-semibold text-slateBrand">Google Tag Manager (GTM) 対応</h3>
+          <p class="mt-1 text-sm text-slate-700">
+            GTMの動的読み込みと18種類のカスタムイベントトラッキングを追加しました。
+            カード作成、画像生成、ダウンロード、エラー発生などのユーザー行動を計測できます。
+          </p>
+        </div>
+
+        <div>
+          <h3 class="font-semibold text-slateBrand">アプリ名をImage Creatorに変更</h3>
+          <p class="mt-1 text-sm text-slate-700">
+            アプリ名を「Image Creator」に統一しました。
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <div class="border-t border-slate-200 pt-8">
+      <h2 class="font-heading text-2xl font-bold text-slateBrand">v0.2.0</h2>
+      <p class="mt-1 text-sm text-slate-500">2026-02-12</p>
+
+      <div class="mt-4 space-y-4">
+        <div>
+          <h3 class="font-semibold text-slateBrand">参照画像サポート</h3>
+          <p class="mt-1 text-sm text-slate-700">
+            fal.aiモデルの一部で必要な参照画像の入力に対応しました。
+            モデルのOpenAPIスキーマから画像入力要件を自動判定します。
+          </p>
+        </div>
+
+        <div>
+          <h3 class="font-semibold text-slateBrand">モデル一覧取得</h3>
+          <p class="mt-1 text-sm text-slate-700">
+            fal.aiとGoogle AI Studioのモデル一覧をAPIから取得し、セレクトボックスで選択できるようになりました。
+          </p>
+        </div>
+
+        <div>
+          <h3 class="font-semibold text-slateBrand">PNGメタデータ埋め込み</h3>
+          <p class="mt-1 text-sm text-slate-700">
+            ダウンロードしたPNGファイルのiTXtチャンクにプロンプト情報を埋め込むようにしました。
+          </p>
+        </div>
+
+        <div>
+          <h3 class="font-semibold text-slateBrand">一括ZIPダウンロード</h3>
+          <p class="mt-1 text-sm text-slate-700">
+            全カードの画像をZIPファイルとして一括ダウンロードできるようになりました（JSZip使用）。
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <div class="border-t border-slate-200 pt-8">
+      <h2 class="font-heading text-2xl font-bold text-slateBrand">v0.1.0</h2>
+      <p class="mt-1 text-sm text-slate-500">2026-02-10</p>
+
+      <div class="mt-4 space-y-4">
+        <div>
+          <h3 class="font-semibold text-slateBrand">初期リリース</h3>
+          <p class="mt-1 text-sm text-slate-700">
+            基本機能を実装した初期リリースです。
+          </p>
+          <ul class="mt-2 list-disc list-inside space-y-1 text-sm text-slate-600">
+            <li>fal.ai / Google AI Studio / Adobe Firefly の3プロバイダ対応</li>
+            <li>Light / Advancedモード切替</li>
+            <li>一括入力からカード生成</li>
+            <li>並行生成（最大4件同時）</li>
+            <li>個別/全カードダウンロード</li>
+            <li>IndexedDB永続化</li>
+            <li>GitHub Pages自動デプロイ</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+  </section>
+</article>

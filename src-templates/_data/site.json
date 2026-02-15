@@ -17,6 +17,11 @@
       "label": "Fireflyガイド",
       "url": "/guide/firefly-token/",
       "key": "firefly"
+    },
+    {
+      "label": "リリースノート",
+      "url": "/release-notes/",
+      "key": "release-notes"
     }
   ]
 }

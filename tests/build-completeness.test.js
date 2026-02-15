@@ -13,7 +13,8 @@ test('all expected pages are generated', async () => {
   const expectedPages = [
     '_site/index.html',
     '_site/help/index.html',
-    '_site/guide/firefly-token/index.html'
+    '_site/guide/firefly-token/index.html',
+    '_site/release-notes/index.html'
   ];
 
   for (const page of expectedPages) {
@@ -30,7 +31,8 @@ test('all pages have required structure', async () => {
   const pages = [
     { path: '_site/index.html', name: 'index' },
     { path: '_site/help/index.html', name: 'help' },
-    { path: '_site/guide/firefly-token/index.html', name: 'firefly-token' }
+    { path: '_site/guide/firefly-token/index.html', name: 'firefly-token' },
+    { path: '_site/release-notes/index.html', name: 'release-notes' }
   ];
 
   for (const { path, name } of pages) {
@@ -53,7 +55,8 @@ test('build artifacts directory structure is correct', async () => {
     '_site/src',
     '_site/help',
     '_site/guide',
-    '_site/guide/firefly-token'
+    '_site/guide/firefly-token',
+    '_site/release-notes'
   ];
 
   for (const dir of requiredDirs) {
