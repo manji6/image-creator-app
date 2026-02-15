@@ -1,5 +1,10 @@
 import { summarizeError, toJsonWithError } from './utils.js';
-import { MAX_FAL_MODEL_PAGES, MAX_GOOGLE_MODEL_PAGES } from './app-constants.js';
+import {
+  MAX_FAL_MODEL_PAGES,
+  MAX_GOOGLE_MODEL_PAGES,
+  MODEL_CACHE_TTL_MS,
+  MODEL_CATALOG_STORAGE_PREFIX
+} from './app-constants.js';
 
 const FAL_MODELS_URL = 'https://api.fal.ai/v1/models';
 const GOOGLE_MODELS_URL = 'https://generativelanguage.googleapis.com/v1beta/models';
@@ -108,6 +113,63 @@ export function withDisambiguatedLabels(entries) {
     };
   });
 }
+
+// ========== Storage Helpers ==========
+
+export function saveCatalogToStorage(provider, catalog) {
+  try {
+    const key = `${MODEL_CATALOG_STORAGE_PREFIX}${provider}`;
+    const data = {
+      status: catalog.status,
+      models: catalog.models,
+      error: catalog.error,
+      loadedAt: catalog.loadedAt
+    };
+    sessionStorage.setItem(key, JSON.stringify(data));
+    return true;
+  } catch (error) {
+    console.warn(`Failed to cache ${provider} models:`, error);
+    return false;
+  }
+}
+
+export function loadCatalogFromStorage(provider) {
+  try {
+    const key = `${MODEL_CATALOG_STORAGE_PREFIX}${provider}`;
+    const stored = sessionStorage.getItem(key);
+    if (!stored) return null;
+
+    const data = JSON.parse(stored);
+
+    // TTLチェック（12時間）
+    const age = Date.now() - data.loadedAt;
+    if (age >= MODEL_CACHE_TTL_MS) {
+      sessionStorage.removeItem(key);
+      return null;
+    }
+
+    // データ構造検証
+    if (!data.models || !Array.isArray(data.models) || typeof data.loadedAt !== 'number') {
+      throw new Error('Invalid cache structure');
+    }
+
+    return data;
+  } catch (error) {
+    console.warn(`Failed to load ${provider} models from cache:`, error);
+    return null;
+  }
+}
+
+export function clearCatalogFromStorage(provider) {
+  try {
+    const key = `${MODEL_CATALOG_STORAGE_PREFIX}${provider}`;
+    sessionStorage.removeItem(key);
+  } catch (error) {
+    console.warn(`Failed to clear ${provider} cache:`, error);
+  }
+}
+
+// ========== Model Catalog Functions ==========
 
 function isImageGenerationModel(model) {
   const category = String(model?.category || '').toLowerCase();

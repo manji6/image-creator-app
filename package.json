@@ -4,7 +4,12 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "dev": "eleventy --serve --config=.eleventy.cjs",
+    "build": "eleventy --config=.eleventy.cjs",
     "serve": "node ./scripts/serve.mjs",
     "test": "node --test"
+  },
+  "devDependencies": {
+    "@11ty/eleventy": "^2.0.1"
   }
 }

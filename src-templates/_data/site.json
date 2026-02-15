@@ -1,0 +1,22 @@
+{
+  "title": "Image Creator",
+  "baseUrl": "/",
+  "year": 2026,
+  "nav": [
+    {
+      "label": "アプリ",
+      "url": "/",
+      "key": "index"
+    },
+    {
+      "label": "使い方",
+      "url": "/help/",
+      "key": "help"
+    },
+    {
+      "label": "Fireflyガイド",
+      "url": "/guide/firefly-token/",
+      "key": "firefly"
+    }
+  ]
+}

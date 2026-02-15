@@ -22,17 +22,20 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build with Eleventy
+        run: npm run build
+
       - name: Configure Pages
         uses: actions/configure-pages@v5
-
-      - name: Prepare static artifact
-        run: |
-          mkdir -p _site
-          cp index.html _site/index.html
-          cp help.html _site/help.html
-          cp styles.css _site/styles.css
-          cp -R src _site/src
-          cp -R guide _site/guide
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3

@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    {% include "partials/head.njk" %}
+  </head>
+  <body class="font-body text-slate-800">
+    <div class="page-bg"></div>
+    <main class="relative mx-auto flex min-h-screen w-full max-w-[1360px] flex-col gap-6 p-4 md:p-8">
+      <header class="rounded-3xl border border-white/60 bg-white/80 p-6 shadow-card backdrop-blur-md">
+        {% include "partials/nav.njk" %}
+        <div {% if hasHeaderActions %}class="flex flex-wrap items-center justify-between gap-4"{% endif %}>
+          <div>
+            <p class="text-sm font-semibold uppercase tracking-[0.2em] text-sea">{{ headerSubtitle }}</p>
+            <h1 class="font-heading text-3xl font-bold text-slateBrand">{{ headerTitle }}</h1>
+            <p class="mt-2 text-sm text-slate-600">
+              {{ headerDescription }}
+            </p>
+          </div>
+          {% if hasHeaderActions %}
+          <div class="flex flex-wrap gap-3">
+            <button
+              id="save-settings-btn"
+              class="rounded-xl bg-sea px-5 py-2.5 text-sm font-semibold text-white shadow-soft transition hover:bg-sea/90"
+            >
+              設定を保存
+            </button>
+            <button
+              id="clear-all-cards-btn"
+              class="rounded-xl border border-coral bg-white px-5 py-2.5 text-sm font-semibold text-coral transition hover:bg-coral/5"
+            >
+              カードを全削除
+            </button>
+          </div>
+          {% endif %}
+        </div>
+      </header>
+
+      {{ content | safe }}
+
+      {% include "partials/footer.njk" %}
+    </main>
+
+    {% if includeMainJS %}
+    <script type="module" src="./src/main.js"></script>
+    {% endif %}
+  </body>
+</html>

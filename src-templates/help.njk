@@ -1,0 +1,174 @@
+---
+layout: layouts/base.njk
+title: 使い方ガイド - Image Creator
+description: Image Creatorの使い方ガイド - プロバイダー設定から画像生成まで
+activeNav: help
+headerSubtitle: Help & Guide
+headerTitle: 使い方ガイド
+headerDescription: Image Creatorの基本的な使い方を説明します。
+hasHeaderActions: false
+showFooter: true
+stylesPath: ./styles.css
+includeJSZip: false
+includeMainJS: false
+---
+
+<article class="rounded-3xl border border-white/60 bg-white/85 p-8 shadow-card backdrop-blur-md">
+  <section class="space-y-6">
+    <div>
+      <h2 class="font-heading text-2xl font-bold text-slateBrand">Image Creatorとは</h2>
+      <p class="mt-3 text-slate-700 leading-relaxed">
+        複数のプロンプトから一括で画像を生成できる、ローカルファースト設計のWebアプリケーションです。
+        すべてのデータ（設定、カード、APIキー）はブラウザ内のIndexedDBにのみ保存され、サーバー側には一切送信されません。
+      </p>
+    </div>
+
+    <div class="border-t border-slate-200 pt-6">
+      <h2 class="font-heading text-2xl font-bold text-slateBrand">基本的な使い方</h2>
+
+      <div class="mt-4 space-y-4">
+        <div class="rounded-xl bg-mist p-4">
+          <h3 class="font-semibold text-slateBrand">1. プロバイダーを選択</h3>
+          <p class="mt-2 text-sm text-slate-700">
+            <strong>fal.ai</strong>、<strong>Google AI Studio</strong>、<strong>Adobe Firefly</strong> の3つから選択できます。
+            それぞれのAPIキーを入力してください。
+          </p>
+        </div>
+
+        <div class="rounded-xl bg-mist p-4">
+          <h3 class="font-semibold text-slateBrand">2. モデルを選択</h3>
+          <p class="mt-2 text-sm text-slate-700">
+            「一覧を更新」ボタンでモデル一覧を取得できます。手動入力も可能です。
+          </p>
+        </div>
+
+        <div class="rounded-xl bg-mist p-4">
+          <h3 class="font-semibold text-slateBrand">3. プロンプトを入力</h3>
+          <p class="mt-2 text-sm text-slate-700">
+            共通プロンプトと行ごとのプロンプトを入力します。1行 = 1枚のカードが生成されます。
+          </p>
+        </div>
+
+        <div class="rounded-xl bg-mist p-4">
+          <h3 class="font-semibold text-slateBrand">4. カードを作成して生成</h3>
+          <p class="mt-2 text-sm text-slate-700">
+            「カードを作成」ボタンでプロンプトカードを生成し、「カードを全て生成」で一括生成を開始します。
+          </p>
+        </div>
+
+        <div class="rounded-xl bg-mist p-4">
+          <h3 class="font-semibold text-slateBrand">5. 結果をダウンロード</h3>
+          <p class="mt-2 text-sm text-slate-700">
+            個別ダウンロードまたは全カード一括ダウンロード（ZIP形式）が可能です。
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <div class="border-t border-slate-200 pt-6">
+      <h2 class="font-heading text-2xl font-bold text-slateBrand">モード切替</h2>
+
+      <div class="mt-4 space-y-4">
+        <div class="rounded-xl border border-slate-200 bg-white p-4">
+          <h3 class="font-semibold text-slateBrand">Lightモード</h3>
+          <p class="mt-2 text-sm text-slate-700">
+            共通プロンプト + 各行プロンプトを単純に連結します。シンプルで分かりやすい入力方法です。
+          </p>
+          <div class="mt-3 rounded bg-slate-50 p-3 text-xs font-mono text-slate-600">
+            例: 共通「かわいい猫」+ 行「青い目」 → 「かわいい猫 青い目」
+          </div>
+        </div>
+
+        <div class="rounded-xl border border-slate-200 bg-white p-4">
+          <h3 class="font-semibold text-slateBrand">Advancedモード</h3>
+          <p class="mt-2 text-sm text-slate-700">
+            共通プロンプト内で <code class="rounded bg-slate-100 px-1 text-sea">{{item}}</code> を使ってテンプレート展開できます。
+            <code class="rounded bg-slate-100 px-1 text-sea">${item}</code> や <code class="rounded bg-slate-100 px-1 text-sea">{$item}</code> も互換性があります。
+          </p>
+          <div class="mt-3 rounded bg-slate-50 p-3 text-xs font-mono text-slate-600">
+            例: 共通「{{item}}の猫」+ 行「青い」 → 「青いの猫」
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="border-t border-slate-200 pt-6">
+      <h2 class="font-heading text-2xl font-bold text-slateBrand">プロバイダー別の設定</h2>
+
+      <div class="mt-4 space-y-4">
+        <div class="rounded-xl border border-sea/20 bg-sea/5 p-4">
+          <h3 class="font-semibold text-slateBrand">fal.ai</h3>
+          <ul class="mt-2 list-disc list-inside space-y-1 text-sm text-slate-700">
+            <li>API Keyを入力</li>
+            <li>モデル一覧から選択または手動入力</li>
+            <li>一部モデルは参照画像の入力が必要（自動判定）</li>
+          </ul>
+        </div>
+
+        <div class="rounded-xl border border-sea/20 bg-sea/5 p-4">
+          <h3 class="font-semibold text-slateBrand">Google AI Studio</h3>
+          <ul class="mt-2 list-disc list-inside space-y-1 text-sm text-slate-700">
+            <li>Google API Keyを入力</li>
+            <li>Geminiモデルから選択</li>
+            <li>デフォルト: gemini-2.5-flash-image-preview</li>
+          </ul>
+        </div>
+
+        <div class="rounded-xl border border-sea/20 bg-sea/5 p-4">
+          <h3 class="font-semibold text-slateBrand">Adobe Firefly</h3>
+          <p class="mt-2 text-sm text-slate-700">
+            現在は<strong>Directモード</strong>のみ対応しています:
+          </p>
+          <ul class="mt-2 list-disc list-inside space-y-1 text-sm text-slate-700">
+            <li>Client ID + Access Tokenを直接入力</li>
+            <li>Proxyモードは今後準備予定</li>
+          </ul>
+          <p class="mt-3 text-sm text-slate-600">
+            詳しくは <a href="/guide/firefly-token.html" class="font-semibold text-sea underline hover:text-sea/80">Fireflyガイド</a> をご覧ください。
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <div class="border-t border-slate-200 pt-6">
+      <h2 class="font-heading text-2xl font-bold text-slateBrand">よくある質問</h2>
+
+      <div class="mt-4 space-y-4">
+        <div>
+          <h3 class="font-semibold text-slateBrand">Q. APIキーはどこに保存されますか？</h3>
+          <p class="mt-2 text-sm text-slate-700">
+            ブラウザのIndexedDBにのみ保存されます。サーバーには送信されません。
+          </p>
+        </div>
+
+        <div>
+          <h3 class="font-semibold text-slateBrand">Q. Firefly Access Tokenは保存されますか？</h3>
+          <p class="mt-2 text-sm text-slate-700">
+            セッション中のみメモリに保持され、「設定を保存」しても永続化されません。
+          </p>
+        </div>
+
+        <div>
+          <h3 class="font-semibold text-slateBrand">Q. 生成した画像はどこに保存されますか？</h3>
+          <p class="mt-2 text-sm text-slate-700">
+            カード情報（画像URLを含む）がIndexedDBに保存されます。実際の画像ファイルは各プロバイダーのサーバーにあります。
+          </p>
+        </div>
+
+        <div>
+          <h3 class="font-semibold text-slateBrand">Q. 並行生成数は変更できますか？</h3>
+          <p class="mt-2 text-sm text-slate-700">
+            デフォルトは2に設定されています。
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <div class="mt-8 rounded-xl bg-sea/10 border border-sea/30 p-6">
+      <h3 class="font-semibold text-slateBrand">困ったときは</h3>
+      <p class="mt-2 text-sm text-slate-700">
+        GitHub Issues: <a href="https://github.com/manji6/image-creator-app/issues" class="font-semibold text-sea underline hover:text-sea/80" target="_blank" rel="noopener noreferrer">問題を報告</a>
+      </p>
+    </div>
+  </section>
+</article>

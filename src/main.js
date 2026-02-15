@@ -18,7 +18,10 @@ import {
   fetchFalModels,
   fetchGoogleModels,
   getModelFetchErrorMessage,
-  withDisambiguatedLabels
+  withDisambiguatedLabels,
+  saveCatalogToStorage,
+  loadCatalogFromStorage,
+  clearCatalogFromStorage
 } from './model-catalog.js';
 import { buildReferenceImagePayload } from './model-input.js';
 import {
@@ -40,7 +43,8 @@ import {
   MAX_GENERATION_CONCURRENCY,
   MIN_GENERATION_CONCURRENCY,
   MODEL_CACHE_TTL_MS,
-  MODEL_REQUIREMENT_DEBOUNCE_MS
+  MODEL_REQUIREMENT_DEBOUNCE_MS,
+  MODEL_REQUIREMENT_STORAGE_KEY
 } from './app-constants.js';
 import { runGenerationPreflight } from './generation-preflight.js';
 import { generateImage, providerHint, PROVIDER_INFO } from './providers/index.js';
@@ -74,6 +78,27 @@ function createCatalogEntry() {
   };
 }
 
+function saveRequirementCacheToStorage() {
+  try {
+    const entries = Array.from(state.modelRequirementCache.entries());
+    sessionStorage.setItem(MODEL_REQUIREMENT_STORAGE_KEY, JSON.stringify(entries));
+  } catch (error) {
+    console.warn('Failed to cache model requirements:', error);
+  }
+}
+
+function loadRequirementCacheFromStorage() {
+  try {
+    const stored = sessionStorage.getItem(MODEL_REQUIREMENT_STORAGE_KEY);
+    if (!stored) return new Map();
+    const entries = JSON.parse(stored);
+    return new Map(entries);
+  } catch (error) {
+    console.warn('Failed to load model requirement cache:', error);
+    return new Map();
+  }
+}
+
 const state = {
   settings: structuredClone(DEFAULT_SETTINGS),
   cards: [],
@@ -82,13 +107,13 @@ const state = {
   runningCardIds: new Set(),
   abortControllers: new Map(),
   modelCatalog: {
-    fal: createCatalogEntry(),
-    google: createCatalogEntry()
+    fal: loadCatalogFromStorage('fal') || createCatalogEntry(),
+    google: loadCatalogFromStorage('google') || createCatalogEntry()
   },
   modelFetchControllers: new Map(),
   requirementFetchController: null,
   modelRequirementDebounceTimer: null,
-  modelRequirementCache: new Map(),
+  modelRequirementCache: loadRequirementCacheFromStorage(),
   modelRequirement: createRequirementEntry(),
   referenceImage: createReferenceImageState(),
   referenceImageValidationMessage: '',
@@ -231,6 +256,7 @@ function resetModelCatalog(provider) {
     return;
   }
   state.modelCatalog[provider] = createCatalogEntry();
+  clearCatalogFromStorage(provider);
 }
 
 function validateCurrentTemplate() {
@@ -521,6 +547,7 @@ async function fetchModelRequirement(provider, modelId, force = false) {
     });
     if (resolved.status !== 'error') {
       state.modelRequirementCache.set(cacheKey, resolved);
+      saveRequirementCacheToStorage();
     }
 
     if (
@@ -573,6 +600,11 @@ function scheduleModelRequirementRefresh(force = false) {
 
 function resetRequirementState() {
   state.modelRequirementCache.clear();
+  try {
+    sessionStorage.removeItem(MODEL_REQUIREMENT_STORAGE_KEY);
+  } catch (error) {
+    console.warn('Failed to clear requirement cache:', error);
+  }
   if (state.requirementFetchController) {
     state.requirementFetchController.abort();
     state.requirementFetchController = null;
@@ -726,6 +758,7 @@ async function fetchModelCatalog(provider, force = false) {
       error: '',
       loadedAt: Date.now()
     };
+    saveCatalogToStorage(provider, state.modelCatalog[provider]);
   } catch (error) {
     if (error?.name === 'AbortError') {
       return;
