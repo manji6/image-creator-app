@@ -19,14 +19,16 @@
           {% if hasHeaderActions %}
           <div class="flex flex-wrap gap-3">
             <button
-              id="save-settings-btn"
-              class="rounded-xl bg-sea px-5 py-2.5 text-sm font-semibold text-white shadow-soft transition hover:bg-sea/90"
+              id="saveSettingsButton"
+              type="button"
+              class="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-soft transition hover:border-sea hover:text-sea"
             >
               設定を保存
             </button>
             <button
-              id="clear-all-cards-btn"
-              class="rounded-xl border border-coral bg-white px-5 py-2.5 text-sm font-semibold text-coral transition hover:bg-coral/5"
+              id="clearCardsButton"
+              type="button"
+              class="rounded-xl border border-coral/40 bg-coral/5 px-4 py-2 text-sm font-semibold text-coral transition hover:bg-coral/10"
             >
               カードを全削除
             </button>

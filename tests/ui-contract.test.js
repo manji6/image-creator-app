@@ -9,7 +9,7 @@ const __dirname = dirname(__filename);
 const ROOT = join(__dirname, '..');
 
 test('index.html has global generate controls', async () => {
-  const html = await readFile(`${ROOT}/index.html`, 'utf8');
+  const html = await readFile(`${ROOT}/_site/index.html`, 'utf8');
   assert.doesNotMatch(html, /id="generateAllButton"/);
   assert.match(html, /id="generateExistingButton"/);
   assert.match(html, /id="regenerateFailedButton"/);
