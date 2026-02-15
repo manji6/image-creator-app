@@ -29,7 +29,7 @@ export function ensureRegenerateButton(actions, removeButton) {
   regenerate = document.createElement('button');
   regenerate.type = 'button';
   regenerate.className = REGENERATE_CLASS;
-  regenerate.textContent = '再生成';
+  regenerate.textContent = '生成';
 
   if (removeButton && removeButton.parentElement === actions) {
     actions.insertBefore(regenerate, removeButton);

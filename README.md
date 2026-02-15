@@ -7,8 +7,11 @@
 - Light / Advanced モード切替
 - Advancedモードで `{{item}}` テンプレート展開（`${item}` / `{$item}` 互換）
 - カードごとの「プロンプトプレビュー」モーダル
-- 生成結果カードごとにプロンプト編集と再生成
-- 生成画像クリックでフルスクリーンプレビュー
+- カードごとにプロバイダ・モデルを個別選択可能（コンパクト表示 + クリック展開で変更）
+- カード内で共通プロンプトをインラインプレビュー
+- 生成後の設定変更を「設定変更あり」バッジで可視化
+- 生成結果カードごとにプロンプト編集と生成
+- 生成画像クリックでフルスクリーンプレビュー（プロバイダ・モデル情報表示）
 - 生成結果カードごとに個別ダウンロード
 - 全カード一括ダウンロード（ZIP、未対応環境は個別DLフォールバック）
 - 保存ファイル名は `hash_プロンプト要約.ext`
@@ -16,6 +19,7 @@
 - `fal.ai` / `Google AI Studio` / `Adobe Firefly` を切替可能
 - fal.ai / Google はモデル一覧取得に対応（手入力フォールバックあり）
 - fal.ai の一部モデルで参照画像入力要件を自動判定
+- 設定エクスポート/インポート（JSON形式で作業コンテキスト切替可能）
 - ユーザーデータは `IndexedDB` のみ保存（サーバーDBなし）
 - Fireflyは **Proxy URL** または **Client ID + Access Token** のどちらかで利用可能
 
@@ -54,7 +58,7 @@
 - アプリの設定と生成カードはブラウザ内の `IndexedDB` に保存
 - GitHub Pages配信のみでサーバー側DBは不要
 - APIキーはブラウザローカルに保存（端末利用者が管理）
-- Firefly Access Token は保存時に永続化されずセッションのみ保持
+- Firefly Access Token は自動保存時にも永続化されずセッションのみ保持
 
 ## ローカル実行
 
@@ -93,7 +97,7 @@ npm test
 - 2つの接続方式を選択可能
   - Direct: `Firefly Client ID` + `Access Token` を手動入力して直接API実行
   - Proxy: `Firefly Proxy URL` (任意で `Proxy Token`) を利用
-- Direct方式の `Access Token` は保存時に永続化されず、セッション内のみ保持
+- Direct方式の `Access Token` は自動保存時にも永続化されず、セッション内のみ保持
 - Proxy未設定でも Direct設定があれば Firefly 利用可
 
 ## Firefly Proxy (Cloudflare Worker)
@@ -162,7 +166,7 @@ GTMコンテナで「変数」→「新規」から以下を作成：
 | CE - Batch Download Start | カスタムイベント | `batch_download_start` |
 | CE - Batch Download Complete | カスタムイベント | `batch_download_complete` |
 | CE - Provider Switch | カスタムイベント | `provider_switch` |
-| CE - Settings Save | カスタムイベント | `settings_save` |
+| CE - Settings Save | カスタムイベント | `settings_save` (※手動保存ボタン廃止につき現在未発火) |
 
 その他のイベント（`card_regenerate`, `card_deletion`, `reference_image_upload`, `modal_open`, `modal_close`）も同様に作成可能。
 
@@ -212,7 +216,7 @@ GTMコンテナで「変数」→「新規」から以下を作成：
 **推奨イベント**:
 - `batch_download_start`, `batch_download_complete`: 一括ダウンロード
 - `provider_switch`: プロバイダー切り替え
-- `settings_save`: 設定保存
+- `settings_save`: 設定保存（※手動保存ボタン廃止により現在未発火）
 - `card_regenerate`: 個別再生成
 
 **オプションイベント**:

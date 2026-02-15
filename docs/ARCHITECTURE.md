@@ -1,7 +1,7 @@
 # Architecture: Image Creator
 
-- Document version: 1.0
-- Last updated: 2026-02-11
+- Document version: 1.1
+- Last updated: 2026-02-15
 
 ## 1. System Overview
 Image Creator is a static, browser-first single-page app.
@@ -71,6 +71,8 @@ flowchart LR
   - Provider request and response handling.
 - `src/session-settings.js`
   - Session-only field stripping before persistent save.
+- `src/settings-export.js`
+  - Settings export to JSON and import validation.
 
 ## 4. State Model
 
@@ -109,9 +111,10 @@ Session-only state:
 - `status`: `pending | generating | success | error`
 - `imageUrl`
 - `errorMessage`
-- `provider`
-- `model`
+- `provider` (set at creation from global settings, editable per-card)
+- `model` (set at creation from global settings, editable per-card)
 - `updatedAt`
+- `generatedWith`: `null | { provider, model, finalPrompt, commonPrompt }` (snapshot at generation for dirty detection)
 
 ## 6. Generation Flow
 

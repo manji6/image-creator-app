@@ -39,6 +39,14 @@ test('index.html has global generate controls', async () => {
   assert.match(html, /id="imagePreviewModal"/);
   assert.match(html, /id="imagePreviewModalImage"/);
   assert.match(html, /id="closeImagePreviewModalButton"/);
+  assert.match(html, /id="exportSettingsButton"/);
+  assert.match(html, /id="importSettingsInput"/);
+  assert.match(html, /id="imagePreviewProvider"/);
+  assert.match(html, /class="card-provider-display/);
+  assert.match(html, /class="card-provider-editor/);
+  assert.match(html, /class="card-provider-select/);
+  assert.match(html, /class="card-model-input/);
+  assert.match(html, /class="card-computed-prompt/);
   assert.match(html, /jszip\.min\.js/);
 });
 

@@ -120,7 +120,7 @@ includeMainJS: true
               <p class="text-xs font-semibold text-amber-800">Firefly 直接接続 (推奨: セッション運用)</p>
               <p class="mt-1 text-xs text-amber-700">
                 Client ID と Access Token を手動入力すると、Proxyなしで直接実行できます。
-                Access Tokenは「設定を保存」しても永続化されません。
+                Access Tokenはセッション内のみ保持され、リロード時に消去されます。
               </p>
               <div class="mt-3 space-y-3">
                 <div>
@@ -142,6 +142,14 @@ includeMainJS: true
                     <option value="art">Art (芸術的な画像)</option>
                   </select>
                   <p class="mt-1 text-xs text-slate-500">生成画像の特性を指定します。Photoは写真的、Artは芸術的な仕上がりになります。</p>
+                </div>
+                <div>
+                  <label class="block text-xs font-semibold text-slate-600" for="fireflyProxyUrlInput">Firefly Proxy URL (任意)</label>
+                  <input id="fireflyProxyUrlInput" type="url" class="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-sea focus:outline-none" placeholder="https://your-proxy.example.com" />
+                </div>
+                <div>
+                  <label class="block text-xs font-semibold text-slate-600" for="fireflyProxyTokenInput">Firefly Proxy Token (任意)</label>
+                  <input id="fireflyProxyTokenInput" type="password" class="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-sea focus:outline-none" placeholder="Proxy認証トークン" />
                 </div>
               </div>
             </div>
@@ -223,17 +231,43 @@ includeMainJS: true
 
     <div class="mt-3">
       <div class="flex items-center justify-between gap-2">
-        <p class="card-provider text-xs font-semibold uppercase tracking-[0.12em] text-slate-500"></p>
+        <div class="card-provider-display flex items-center gap-1.5 cursor-pointer group" title="クリックしてプロバイダー/モデルを変更">
+          <p class="card-provider text-xs font-semibold uppercase tracking-[0.12em] text-slate-500 group-hover:text-sea transition"></p>
+          <svg class="h-3 w-3 text-slate-400 group-hover:text-sea transition" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+          </svg>
+        </div>
         <span class="card-status rounded-full px-2 py-1 text-xs font-semibold"></span>
       </div>
 
-      <label class="mt-3 block text-xs font-semibold text-slate-500">プロンプト</label>
+      <div class="card-provider-editor hidden mt-2 space-y-2 rounded-xl border border-slate-200 bg-slate-50/70 p-3">
+        <div>
+          <label class="block text-xs font-semibold text-slate-600">プロバイダー</label>
+          <select class="card-provider-select mt-1 w-full rounded-lg border border-slate-200 bg-white px-2 py-1.5 text-xs focus:border-sea focus:outline-none">
+            <option value="fal">fal.ai</option>
+            <option value="google">Google AI Studio</option>
+            <option value="firefly">Adobe Firefly</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-600">モデル</label>
+          <input type="text" class="card-model-input mt-1 w-full rounded-lg border border-slate-200 bg-white px-2 py-1.5 text-xs focus:border-sea focus:outline-none" placeholder="モデルID" />
+        </div>
+        <button type="button" class="card-provider-close text-xs text-slate-500 hover:text-sea transition underline">閉じる</button>
+      </div>
+
+      <details class="card-computed-prompt mt-2">
+        <summary class="cursor-pointer text-xs font-semibold text-slate-400 hover:text-sea transition select-none">共通プロンプトを表示</summary>
+        <pre class="card-computed-prompt-text mt-1 max-h-24 overflow-auto rounded-lg border border-slate-200 bg-slate-50 p-2 text-xs leading-5 text-slate-600 whitespace-pre-wrap"></pre>
+      </details>
+
+      <label class="mt-3 block text-xs font-semibold text-slate-500">個別プロンプト</label>
       <textarea class="card-prompt mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:border-sea focus:outline-none" rows="3"></textarea>
 
       <p class="card-error mt-2 hidden rounded-lg border border-coral/30 bg-coral/5 px-2 py-1 text-xs text-coral"></p>
 
       <div class="card-actions mt-3 flex items-center gap-2 opacity-100">
-        <button type="button" class="card-regenerate inline-flex items-center justify-center rounded-lg bg-blue-600 px-3 py-2 text-xs font-semibold text-white transition hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-400">再生成</button>
+        <button type="button" class="card-regenerate inline-flex items-center justify-center rounded-lg bg-blue-600 px-3 py-2 text-xs font-semibold text-white transition hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-400">生成</button>
         <button type="button" class="card-preview inline-flex items-center justify-center rounded-lg border border-blue-200 bg-white px-3 py-2 text-xs font-semibold text-blue-700 transition hover:border-blue-400 hover:text-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-300">プロンプトプレビュー</button>
         <button type="button" class="card-download inline-flex items-center justify-center rounded-lg bg-emerald-600 px-3 py-2 text-xs font-semibold text-white transition hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-400">DL</button>
         <button type="button" class="card-remove inline-flex items-center justify-center rounded-lg border border-slate-200 px-3 py-2 text-xs font-semibold text-slate-600 transition hover:border-coral hover:text-coral">削除</button>
@@ -285,6 +319,7 @@ includeMainJS: true
       />
     </div>
     <div id="imagePreviewPromptSection" class="w-full max-w-3xl rounded-2xl border border-white/20 bg-slate-900/80 p-4 backdrop-blur-md">
+      <p id="imagePreviewProvider" class="mb-2 text-xs font-semibold uppercase tracking-[0.12em] text-slate-400"></p>
       <h3 class="text-xs font-semibold uppercase tracking-[0.12em] text-slate-300">生成時のプロンプト</h3>
       <pre id="imagePreviewPromptContent" class="mt-2 max-h-32 overflow-auto rounded-lg bg-slate-950/60 p-3 text-sm leading-6 text-slate-100"></pre>
     </div>

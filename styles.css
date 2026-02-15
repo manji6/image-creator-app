@@ -52,6 +52,11 @@ body {
   color: rgb(153, 27, 27);
 }
 
+.status-dirty {
+  background: rgba(245, 158, 11, 0.18);
+  color: rgb(146, 64, 14);
+}
+
 @keyframes fadeIn {
   from {
     opacity: 0;

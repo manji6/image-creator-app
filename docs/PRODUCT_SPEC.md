@@ -1,7 +1,7 @@
 # Product Spec: Image Creator
 
-- Document version: 1.0
-- Last updated: 2026-02-11
+- Document version: 1.1
+- Last updated: 2026-02-15
 - Target release track: MVP to incremental extension
 
 ## 1. Product Goal
@@ -28,10 +28,13 @@ Image generation work should be executable in bulk from one screen, with fast co
   - Pre-validation before card creation/generation.
 - Prompt batch input (1 line = 1 card).
 - Per-card operations:
-  - Regenerate
+  - Generate (per-card provider/model で実行)
   - Prompt preview modal
   - Download single image
   - Delete card
+  - Per-card provider/model selection (compact display + click-to-expand editor)
+  - Inline common prompt preview (collapsible, shows shared prompt portion)
+  - Dirty state indicator ("設定変更あり" badge when card settings differ from last generation)
 - Global operations:
   - Generate all cards
   - Regenerate failed cards
@@ -46,9 +49,13 @@ Image generation work should be executable in bulk from one screen, with fast co
 - Reference image support (fal.ai only):
   - Model capability inference from OpenAPI schema.
   - Require/block generation when model requires image input.
+- Settings export/import:
+  - Export current settings (provider, model, common prompt, mode, API keys) to JSON file.
+  - Import settings from JSON file for context switching.
+  - Firefly Access Token is always stripped on export.
 - Local storage:
   - Settings and cards in IndexedDB.
-  - Firefly Access Token is session-only (not persisted on Save).
+  - Firefly Access Token is session-only (auto-stripped before every auto-save).
 - Download naming and metadata:
   - File name format: `<12char_hash>_<prompt_segment>.<ext>`.
   - PNG prompt metadata embedding via `iTXt` chunk when possible.
@@ -76,6 +83,10 @@ Image generation work should be executable in bulk from one screen, with fast co
 - FR-12: For PNG downloads, prompt metadata embedding should be attempted.
 - FR-13: For fal models with required image input, generation must be blocked until reference image is provided.
 - FR-14: Generated image should open in full-screen preview modal on click.
+- FR-15: Each card inherits global provider/model at creation and can be changed independently.
+- FR-16: Cards track generation metadata (`generatedWith`) to detect dirty state.
+- FR-17: Image preview modal displays provider/model alongside the generation prompt.
+- FR-18: User can export settings to JSON file and import settings from JSON file.
 
 ## 6. Non-Functional Requirements
 
@@ -111,7 +122,7 @@ Image generation work should be executable in bulk from one screen, with fast co
 - AC-04: App works with Firefly proxy mode without direct token.
 - AC-05: Advanced mode blocks invalid template before card creation.
 - AC-06: Reference image required models block generation when image missing.
-- AC-07: All generated cards show visible `再生成` button by default.
+- AC-07: All generated cards show visible `生成` button by default.
 - AC-08: Multiple card regeneration requests can run in parallel up to concurrency limit.
 - AC-09: Batch download produces ZIP when JSZip is available.
 - AC-10: `npm test` passes in clean checkout.
@@ -119,6 +130,5 @@ Image generation work should be executable in bulk from one screen, with fast co
 ## 10. Future Candidate Enhancements
 
 - Multiple template variables beyond `item`.
-- Per-card provider/model override.
-- Import/export of project state (JSON) without server sync.
 - Optional self-hosted asset mode (remove CDN dependencies).
+- Full project state export/import (settings + cards together).

@@ -47,7 +47,7 @@ If docs and code diverge, treat code as runtime truth and update docs in the sam
 - Firefly is optional:
   - app must still work with fal/google only.
 - Firefly Access Token must remain session-only (not persisted on save).
-- Card action buttons (`再生成`, `プロンプトプレビュー`, `DL`, `削除`) must be visible by default.
+- Card action buttons (`生成`, `プロンプトプレビュー`, `DL`, `削除`) must be visible by default.
 - Global generation flow must keep `カードを全て生成` as primary bulk execution path.
 
 ## 3. Architecture Guardrails

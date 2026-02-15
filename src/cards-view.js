@@ -6,7 +6,7 @@ import {
   ensureRegenerateButton
 } from './card-actions.js';
 import { isCardRegenerateDisabled } from './generation-helpers.js';
-import { statusClassName } from './utils.js';
+import { isCardDirty, statusClassName } from './utils.js';
 
 export function renderCardsView({
   cards,
@@ -14,13 +14,17 @@ export function renderCardsView({
   providerNotConfigured,
   runningCardIds,
   isDownloadingBundle,
+  commonPrompt,
+  buildPromptFn,
   refs,
   onImagePreview,
   onRegenerate,
   onPreview,
   onDownload,
   onRemove,
-  onPromptChange
+  onPromptChange,
+  onProviderChange,
+  onModelChange
 }) {
   refs.cardsGrid.innerHTML = '';
 
@@ -48,9 +52,64 @@ export function renderCardsView({
     const preview = ensurePreviewButton(actions, remove);
     const download = ensureDownloadButton(actions, remove);
 
+    // Provider/model compact display
+    const providerDisplay = fragment.querySelector('.card-provider-display');
+    const providerEditor = fragment.querySelector('.card-provider-editor');
+    const providerSelect = fragment.querySelector('.card-provider-select');
+    const modelInput = fragment.querySelector('.card-model-input');
+    const providerClose = fragment.querySelector('.card-provider-close');
+
     provider.textContent = card.provider ? `${card.provider} / ${card.model || 'default'}` : 'provider not selected';
-    status.textContent = STATUS_LABELS[card.status] || STATUS_LABELS.pending;
-    status.className = `card-status rounded-full px-2 py-1 text-xs font-semibold ${statusClassName(card.status)}`;
+
+    // Provider editor expand/collapse
+    if (providerDisplay && providerEditor) {
+      if (providerSelect) {
+        providerSelect.value = card.provider || 'fal';
+      }
+      if (modelInput) {
+        modelInput.value = card.model || '';
+      }
+
+      providerDisplay.addEventListener('click', () => {
+        providerEditor.classList.toggle('hidden');
+      });
+
+      if (providerClose) {
+        providerClose.addEventListener('click', () => {
+          providerEditor.classList.add('hidden');
+        });
+      }
+
+      if (providerSelect && onProviderChange) {
+        providerSelect.addEventListener('change', (e) => {
+          void onProviderChange(card.id, e.target.value);
+        });
+      }
+
+      if (modelInput && onModelChange) {
+        modelInput.addEventListener('change', (e) => {
+          void onModelChange(card.id, e.target.value);
+        });
+      }
+    }
+
+    // Dirty state detection
+    const dirty = buildPromptFn ? isCardDirty(card, commonPrompt || '', buildPromptFn) : false;
+
+    if (dirty) {
+      status.textContent = STATUS_LABELS.dirty;
+      status.className = 'card-status rounded-full px-2 py-1 text-xs font-semibold status-dirty';
+    } else {
+      status.textContent = STATUS_LABELS[card.status] || STATUS_LABELS.pending;
+      status.className = `card-status rounded-full px-2 py-1 text-xs font-semibold ${statusClassName(card.status)}`;
+    }
+
+    // Inline common prompt preview
+    const computedPromptText = fragment.querySelector('.card-computed-prompt-text');
+    if (computedPromptText) {
+      computedPromptText.textContent = (commonPrompt || '').trim() || '(未設定)';
+    }
+
     prompt.value = card.prompt;
 
     if (card.imageUrl) {
@@ -83,11 +142,11 @@ export function renderCardsView({
 
     if (regenerate) {
       const isRunning = isCardRegenerateDisabled(runningCardIds, card.id);
-      const isDisabled = isRunning || templateBlocked || providerNotConfigured;
+      const isDisabled = isRunning || templateBlocked;
       regenerate.disabled = isDisabled;
       regenerate.classList.toggle('opacity-50', isDisabled);
       regenerate.classList.toggle('cursor-not-allowed', isDisabled);
-      regenerate.textContent = isRunning ? '生成中...' : '再生成';
+      regenerate.textContent = isRunning ? '生成中...' : '生成';
       regenerate.addEventListener('click', () => {
         void onRegenerate(card.id);
       });

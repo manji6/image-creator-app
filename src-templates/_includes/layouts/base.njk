@@ -19,12 +19,19 @@
           {% if hasHeaderActions %}
           <div class="flex flex-wrap gap-3">
             <button
-              id="saveSettingsButton"
+              id="exportSettingsButton"
               type="button"
               class="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-soft transition hover:border-sea hover:text-sea"
             >
-              設定を保存
+              設定エクスポート
             </button>
+            <label
+              for="importSettingsInput"
+              class="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-soft transition hover:border-sea hover:text-sea cursor-pointer"
+            >
+              設定インポート
+            </label>
+            <input id="importSettingsInput" type="file" accept=".json" class="hidden" />
             <button
               id="clearCardsButton"
               type="button"

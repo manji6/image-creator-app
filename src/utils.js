@@ -43,7 +43,7 @@ export function createId() {
   return `local-${Date.now()}-${randomPart}`;
 }
 
-export function createPromptCard(prompt) {
+export function createPromptCard(prompt, provider = '', model = '') {
   return {
     id: createId(),
     prompt,
@@ -51,10 +51,32 @@ export function createPromptCard(prompt) {
     status: 'pending',
     imageUrl: '',
     errorMessage: '',
-    provider: '',
-    model: '',
-    updatedAt: new Date().toISOString()
+    provider,
+    model,
+    updatedAt: new Date().toISOString(),
+    generatedWith: null
   };
+}
+
+export function isCardDirty(card, currentCommonPrompt, buildPromptFn) {
+  if (!card.generatedWith || card.status !== 'success') {
+    return false;
+  }
+  if (card.provider !== card.generatedWith.provider) {
+    return true;
+  }
+  if (card.model !== card.generatedWith.model) {
+    return true;
+  }
+  try {
+    const currentFinal = buildPromptFn(currentCommonPrompt, card.prompt);
+    if (currentFinal !== card.generatedWith.finalPrompt) {
+      return true;
+    }
+  } catch {
+    return true;
+  }
+  return false;
 }
 
 export function statusClassName(status) {

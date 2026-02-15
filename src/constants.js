@@ -40,5 +40,6 @@ export const STATUS_LABELS = {
   pending: '待機',
   generating: '生成中',
   success: '完了',
-  error: '失敗'
+  error: '失敗',
+  dirty: '設定変更あり'
 };

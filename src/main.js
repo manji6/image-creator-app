@@ -68,6 +68,7 @@ import {
   summarizeError
 } from './utils.js';
 import { trackEvent, trackPageView, EVENTS, ERROR_TYPES } from './analytics/index.js';
+import { exportSettingsToJSON, validateImportedSettings } from './settings-export.js';
 
 function createCatalogEntry() {
   return {
@@ -151,7 +152,10 @@ const refs = {
   fireflyAccessTokenInput: document.querySelector('#fireflyAccessTokenInput'),
   fireflyApiBaseInput: document.querySelector('#fireflyApiBaseInput'),
   fireflyContentClassInput: document.querySelector('#fireflyContentClassInput'),
-  saveSettingsButton: document.querySelector('#saveSettingsButton'),
+  fireflyProxyUrlInput: document.querySelector('#fireflyProxyUrlInput'),
+  fireflyProxyTokenInput: document.querySelector('#fireflyProxyTokenInput'),
+  exportSettingsButton: document.querySelector('#exportSettingsButton'),
+  importSettingsInput: document.querySelector('#importSettingsInput'),
   promptBatchInput: document.querySelector('#promptBatchInput'),
   createCardsButton: document.querySelector('#createCardsButton'),
   generateExistingButton: document.querySelector('#generateExistingButton'),
@@ -170,6 +174,7 @@ const refs = {
   imagePreviewModal: document.querySelector('#imagePreviewModal'),
   imagePreviewModalImage: document.querySelector('#imagePreviewModalImage'),
   imagePreviewPromptSection: document.querySelector('#imagePreviewPromptSection'),
+  imagePreviewProvider: document.querySelector('#imagePreviewProvider'),
   imagePreviewPromptContent: document.querySelector('#imagePreviewPromptContent'),
   closeImagePreviewModalButton: document.querySelector('#closeImagePreviewModalButton')
 };
@@ -241,9 +246,12 @@ function closeImagePreviewModal() {
   trackPageView('/');
 }
 
-function openImagePreviewModal(imageUrl, promptText) {
+function openImagePreviewModal(imageUrl, promptText, providerText) {
   refs.imagePreviewModalImage.src = imageUrl;
   refs.imagePreviewPromptContent.textContent = promptText || '（プロンプト情報なし）';
+  if (refs.imagePreviewProvider) {
+    refs.imagePreviewProvider.textContent = providerText || '';
+  }
   refs.imagePreviewModal.classList.remove('hidden');
   refs.imagePreviewModal.classList.add('flex');
 
@@ -865,6 +873,8 @@ function renderCards() {
     providerNotConfigured,
     runningCardIds: state.runningCardIds,
     isDownloadingBundle: state.isDownloadingBundle,
+    commonPrompt: (state.settings.commonPrompt || '').trim(),
+    buildPromptFn: (common, line) => buildPromptForRequest({ ...state.settings, commonPrompt: common }, line),
     refs,
     onImagePreview: handleImagePreviewCard,
     onRegenerate: handleRegenerate,
@@ -879,7 +889,27 @@ function renderCards() {
       current.prompt = promptValue;
       current.updatedAt = new Date().toISOString();
       await upsertCard(current);
-      renderStatusSummary();
+      render();
+    },
+    onProviderChange: async (cardId, newProvider) => {
+      const current = state.cards.find((entry) => entry.id === cardId);
+      if (!current) {
+        return;
+      }
+      current.provider = newProvider;
+      current.updatedAt = new Date().toISOString();
+      await upsertCard(current);
+      render();
+    },
+    onModelChange: async (cardId, newModel) => {
+      const current = state.cards.find((entry) => entry.id === cardId);
+      if (!current) {
+        return;
+      }
+      current.model = newModel;
+      current.updatedAt = new Date().toISOString();
+      await upsertCard(current);
+      render();
     }
   });
 }
@@ -912,18 +942,38 @@ function render(shouldRenderCards = true) {
     state.isDownloadingBundle || !state.cards.some((card) => Boolean(card.imageUrl));
 }
 
-async function handleSaveSettings() {
+function handleExportSettings() {
   syncSettingsFromForm();
-  await saveSettings(stripSessionOnlySettings(state.settings));
-  setGlobalMessage('success', '設定を保存しました (Firefly Access Tokenはセッション内のみ保持)。');
+  const json = exportSettingsToJSON(state.settings);
+  const blob = new Blob([json], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `image-creator-settings-${new Date().toISOString().slice(0, 10)}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+  setGlobalMessage('success', '設定をエクスポートしました。');
+}
 
-  // Analytics: 設定保存
-  trackEvent(EVENTS.SETTINGS_SAVE, {
-    mode: state.settings.mode,
-    active_provider: state.settings.activeProvider
-  });
+async function handleImportSettings(event) {
+  const file = event.target.files?.[0];
+  if (!file) {
+    return;
+  }
 
-  render();
+  try {
+    const text = await file.text();
+    const importedSettings = validateImportedSettings(text);
+    state.settings = deepMerge(DEFAULT_SETTINGS, importedSettings);
+    writeSettingsToForm();
+    await saveSettings(stripSessionOnlySettings(state.settings));
+    setGlobalMessage('success', '設定をインポートしました。');
+    render();
+  } catch (error) {
+    setGlobalMessage('error', `インポート失敗: ${summarizeError(error)}`);
+  } finally {
+    event.target.value = '';
+  }
 }
 
 async function addCardsFromBatch() {
@@ -938,7 +988,9 @@ async function addCardsFromBatch() {
     return [];
   }
 
-  const cards = lines.map((line) => createPromptCard(line));
+  const activeProvider = state.settings.activeProvider;
+  const activeModel = getActiveProviderModel(state.settings);
+  const cards = lines.map((line) => createPromptCard(line, activeProvider, activeModel));
   state.cards = [...cards, ...state.cards];
   await upsertCards(cards);
   refs.promptBatchInput.value = '';
@@ -993,21 +1045,30 @@ async function handleRegenerate(cardId) {
     return;
   }
 
-  const provider = state.settings.activeProvider;
   if (state.runningCardIds.has(cardId)) {
     setGlobalMessage('info', 'このカードはすでに生成中です。');
     return;
   }
 
   const card = state.cards.find((entry) => entry.id === cardId);
-  if (card) {
-    // Analytics: 個別再生成
-    trackEvent(EVENTS.CARD_REGENERATE, {
-      card_id: hashCardId(cardId),
-      previous_status: card.status,
-      active_provider: provider
-    });
+  if (!card) {
+    return;
   }
+
+  // Use card's own provider if set, otherwise fallback to global
+  const provider = card.provider || state.settings.activeProvider;
+
+  if (!isProviderConfigured(provider, state.settings)) {
+    setGlobalMessage('error', `${provider} のAPI設定が未入力です。`);
+    return;
+  }
+
+  // Analytics: 個別再生成
+  trackEvent(EVENTS.CARD_REGENERATE, {
+    card_id: hashCardId(cardId),
+    previous_status: card.status,
+    active_provider: provider
+  });
 
   await processCard(cardId, provider);
 }
@@ -1030,6 +1091,10 @@ async function processCard(cardId, provider) {
   render();
 
   const settingsSnapshot = deepMerge(DEFAULT_SETTINGS, state.settings);
+  settingsSnapshot.activeProvider = provider;
+  if (card.model && settingsSnapshot.providers[provider]) {
+    settingsSnapshot.providers[provider].model = card.model;
+  }
   const finalPrompt = buildPromptForRequest(settingsSnapshot, card.prompt);
   const providerInput = referenceImagePayloadFor(provider, settingsSnapshot);
   card.finalPrompt = finalPrompt;
@@ -1049,6 +1114,12 @@ async function processCard(cardId, provider) {
     card.provider = result.provider;
     card.model = result.model;
     card.errorMessage = '';
+    card.generatedWith = {
+      provider: result.provider,
+      model: result.model,
+      finalPrompt,
+      commonPrompt: (settingsSnapshot.commonPrompt || '').trim()
+    };
 
     // Analytics: 生成成功
     trackEvent(EVENTS.GENERATION_CARD_SUCCESS, {
@@ -1092,7 +1163,7 @@ async function processGenerationQueue(cardIds) {
     return;
   }
 
-  const provider = state.settings.activeProvider;
+  const globalProvider = state.settings.activeProvider;
 
   const queue = pickRunnableCardIds(cardIds, state.runningCardIds);
   if (queue.length === 0) {
@@ -1105,17 +1176,17 @@ async function processGenerationQueue(cardIds) {
     MAX_GENERATION_CONCURRENCY
   );
   state.isBatchGenerating = true;
-  setGlobalMessage('info', `生成開始: ${queue.length}件 (${provider})`);
+  setGlobalMessage('info', `生成開始: ${queue.length}件`);
   render();
 
   // Analytics: 一括生成開始
   const startTime = Date.now();
   trackEvent(EVENTS.GENERATION_BATCH_START, {
     queue_length: queue.length,
-    provider,
+    provider: globalProvider,
     model: getActiveProviderModel(state.settings),
     concurrency,
-    active_provider: provider
+    active_provider: globalProvider
   });
 
   try {
@@ -1125,8 +1196,10 @@ async function processGenerationQueue(cardIds) {
         if (!next) {
           return;
         }
+        const card = state.cards.find((entry) => entry.id === next);
+        const cardProvider = card?.provider || globalProvider;
         // eslint-disable-next-line no-await-in-loop
-        await processCard(next, provider);
+        await processCard(next, cardProvider);
       }
     });
     await Promise.all(workers);
@@ -1143,7 +1216,7 @@ async function processGenerationQueue(cardIds) {
     success_count: counts.success,
     error_count: counts.error,
     duration_ms: duration,
-    active_provider: provider
+    active_provider: globalProvider
   });
 
   if (counts.error > 0) {
@@ -1190,7 +1263,8 @@ async function handleImagePreviewCard(cardId) {
     return;
   }
   const promptText = card.finalPrompt || card.prompt || '';
-  openImagePreviewModal(card.imageUrl, promptText);
+  const providerText = card.provider ? `${card.provider} / ${card.model || 'default'}` : '';
+  openImagePreviewModal(card.imageUrl, promptText, providerText);
 }
 
 function previewHintForMode() {
@@ -1331,6 +1405,7 @@ function switchActiveProvider(nextProvider) {
   void fetchModelCatalog(nextProvider, false);
   void fetchModelRequirement(nextProvider, getActiveProviderModel(state.settings), false);
   updateProviderConfigurationMessage();
+  scheduleSettingsAutoSave();
 
   // Analytics: プロバイダー切り替え
   trackEvent(EVENTS.PROVIDER_SWITCH, {
@@ -1340,10 +1415,29 @@ function switchActiveProvider(nextProvider) {
   });
 }
 
+let settingsAutoSaveTimer = null;
+function scheduleSettingsAutoSave() {
+  if (settingsAutoSaveTimer) {
+    clearTimeout(settingsAutoSaveTimer);
+  }
+  settingsAutoSaveTimer = setTimeout(() => {
+    settingsAutoSaveTimer = null;
+    void saveSettings(stripSessionOnlySettings(state.settings));
+  }, 500);
+}
+
 function bindEvents() {
-  refs.saveSettingsButton.addEventListener('click', () => {
-    void handleSaveSettings();
-  });
+  if (refs.exportSettingsButton) {
+    refs.exportSettingsButton.addEventListener('click', () => {
+      void handleExportSettings();
+    });
+  }
+
+  if (refs.importSettingsInput) {
+    refs.importSettingsInput.addEventListener('change', (event) => {
+      void handleImportSettings(event);
+    });
+  }
 
   refs.providerSelect.addEventListener('change', (event) => {
     switchActiveProvider(event.target.value);
@@ -1352,17 +1446,28 @@ function bindEvents() {
   refs.modeSelect.addEventListener('change', () => {
     syncSettingsFromForm();
     render();
+    scheduleSettingsAutoSave();
   });
 
+  let commonPromptCardDebounce = null;
   refs.commonPromptInput.addEventListener('input', () => {
     syncSettingsFromForm();
     render(false);
+    scheduleSettingsAutoSave();
+    if (commonPromptCardDebounce) {
+      clearTimeout(commonPromptCardDebounce);
+    }
+    commonPromptCardDebounce = setTimeout(() => {
+      commonPromptCardDebounce = null;
+      renderCards();
+    }, 300);
   });
 
   refs.providerModelManualInput.addEventListener('input', () => {
     syncSettingsFromForm();
     render(false);
     scheduleModelRequirementRefresh(false);
+    scheduleSettingsAutoSave();
   });
 
   refs.providerModelSelect.addEventListener('change', (event) => {
@@ -1374,6 +1479,7 @@ function bindEvents() {
     setActiveProviderModel(nextModel);
     render();
     void fetchModelRequirement(state.settings.activeProvider, getActiveProviderModel(state.settings), false);
+    scheduleSettingsAutoSave();
   });
 
   refs.refreshModelsButton.addEventListener('click', () => {
@@ -1387,6 +1493,7 @@ function bindEvents() {
     render(false);
     scheduleModelRequirementRefresh(false);
     updateProviderConfigurationMessage();
+    scheduleSettingsAutoSave();
   });
 
   refs.googleApiKeyInput.addEventListener('input', () => {
@@ -1394,12 +1501,14 @@ function bindEvents() {
     syncSettingsFromForm();
     render(false);
     updateProviderConfigurationMessage();
+    scheduleSettingsAutoSave();
   });
 
   refs.fireflyClientIdInput.addEventListener('input', () => {
     syncSettingsFromForm();
     render(false);
     updateProviderConfigurationMessage();
+    scheduleSettingsAutoSave();
   });
 
   refs.fireflyAccessTokenInput.addEventListener('input', () => {
@@ -1411,12 +1520,30 @@ function bindEvents() {
   refs.fireflyApiBaseInput.addEventListener('input', () => {
     syncSettingsFromForm();
     render(false);
+    scheduleSettingsAutoSave();
   });
 
   refs.fireflyContentClassInput.addEventListener('input', () => {
     syncSettingsFromForm();
     render(false);
+    scheduleSettingsAutoSave();
   });
+
+  if (refs.fireflyProxyUrlInput) {
+    refs.fireflyProxyUrlInput.addEventListener('input', () => {
+      syncSettingsFromForm();
+      render(false);
+      scheduleSettingsAutoSave();
+    });
+  }
+
+  if (refs.fireflyProxyTokenInput) {
+    refs.fireflyProxyTokenInput.addEventListener('input', () => {
+      syncSettingsFromForm();
+      render(false);
+      scheduleSettingsAutoSave();
+    });
+  }
 
   refs.referenceImageInput.addEventListener('change', (event) => {
     const input = event.currentTarget;
