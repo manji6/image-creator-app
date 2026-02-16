@@ -23,6 +23,7 @@ flowchart LR
   - Output: `_site/` (static HTML with templated navigation, head, footer).
   - Tooling: Eleventy 2.0.1 (`npm run build` / `npm run dev`).
   - **Critical**: This layer runs at build time, not runtime.
+  - `pathPrefix`: Configured via `ELEVENTY_PATH_PREFIX` env var (default `/`). GitHub Pages sets `/image-creator-app/`. All internal links use Eleventy's `| url` filter to prepend the prefix.
 
 - **UI Layer** (`_site/*.html`, `styles.css`)
   - Tailwind CDN + custom CSS.

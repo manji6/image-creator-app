@@ -228,6 +228,15 @@ GTMコンテナで「変数」→「新規」から以下を作成：
 ## GitHub Pages デプロイ
 `.github/workflows/deploy-pages.yml` により `main` pushで公開されます。
 
+### パスプレフィックス
+GitHub Pages はリポジトリ名のサブディレクトリ配下（例: `/image-creator-app/`）で配信されるため、ビルド時に環境変数 `ELEVENTY_PATH_PREFIX` を設定します。
+ワークフロー内で自動的に設定されます。ローカル開発時は未設定（デフォルト `/`）で動作します。
+
+```bash
+# ローカルでGitHub Pages相当のビルドを確認する場合
+ELEVENTY_PATH_PREFIX=/image-creator-app/ npm run build
+```
+
 ### 初期セットアップ
 1. GitHub Repository の Pages を `GitHub Actions` ソースで有効化
 2. `main` に push

@@ -4,9 +4,9 @@
 <meta name="description" content="{{ description or 'ローカルファーストで複数プロンプトの画像を一括生成できるWebアプリ' }}" />
 
 {# Favicons #}
-<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
-<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
-<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+<link rel="icon" type="image/png" sizes="32x32" href="{{ '/favicon-32x32.png' | url }}" />
+<link rel="icon" type="image/png" sizes="16x16" href="{{ '/favicon-16x16.png' | url }}" />
+<link rel="apple-touch-icon" sizes="180x180" href="{{ '/apple-touch-icon.png' | url }}" />
 
 {# Google Fonts #}
 <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -39,7 +39,7 @@
 </script>
 
 {# Custom Styles #}
-<link rel="stylesheet" href="{{ stylesPath or './styles.css' }}?v=20260211e" />
+<link rel="stylesheet" href="{{ '/styles.css' | url }}?v=20260211e" />
 
 {# Page-specific scripts (index.html only) #}
 {% if includeJSZip %}

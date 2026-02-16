@@ -26,5 +26,6 @@ module.exports = function (eleventyConfig) {
     templateFormats: ['njk', 'html', 'md'],
     htmlTemplateEngine: 'njk',       // Nunjucks
     markdownTemplateEngine: 'njk',
+    pathPrefix: process.env.ELEVENTY_PATH_PREFIX || '/',
   };
 };

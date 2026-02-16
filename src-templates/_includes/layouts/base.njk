@@ -50,7 +50,7 @@
     </main>
 
     {% if includeMainJS %}
-    <script type="module" src="./src/main.js"></script>
+    <script type="module" src="{{ '/src/main.js' | url }}"></script>
     {% endif %}
   </body>
 </html>
